@@ -27,8 +27,8 @@
     "should": "^7.1.0"
   },
   "dependencies": {
+    "eventemitter3": "^1.1.1",
     "immutable": "^3.4.0",
-    "is-promise": "^2.0.0",
-    "microevent": "^1.0.0"
+    "is-promise": "^2.0.0"
   }
 }
