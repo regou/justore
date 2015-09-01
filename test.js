@@ -31,6 +31,27 @@ describe('JuStore', function () {
 		should(store.read('name')).be.exactly('wx');
 	});
 
+
+	it('Can get previous data', function (done) {
+
+		store.write('historyTest','wow');
+
+
+		setTimeout(function(){
+			store.change.on('historyTest',function(newData,prevData){
+
+				should(prevData).be.exactly('wow');
+				should(newData).be.exactly('starcraft');
+				done();
+
+			});
+			store.write('historyTest','starcraft');
+		},100);
+
+
+	});
+
+
 	it('Trigger events working', function (done) {
 
 		store.change.on('age',function(data){
