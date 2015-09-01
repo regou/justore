@@ -1,0 +1,34 @@
+{
+  "name": "justore",
+  "version": "0.0.1",
+  "description": "We don't need flux , just the store please",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:regou/justore.git"
+  },
+  "keywords": [
+    "flux",
+    "react",
+    "store",
+    "pubsub"
+  ],
+  "author": "admin@regou.me",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/regou/justore/issues"
+  },
+  "homepage": "https://github.com/regou/justore",
+  "devDependencies": {
+    "mocha": "^2.3.0",
+    "should": "^7.1.0"
+  },
+  "dependencies": {
+    "immutable": "^3.4.0",
+    "is-promise": "^2.0.0",
+    "microevent": "^1.0.0"
+  }
+}
