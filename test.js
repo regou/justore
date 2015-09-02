@@ -87,4 +87,29 @@ describe('JuStore', function () {
 	});
 
 
+
+	it('Can pass waitforPromise', function (done) {
+
+		store.change.on('pmstest',function(data){
+
+			should(data).deepEqual([1,3,5,7,9,1,1,1]);
+			done();
+
+
+		});
+
+
+		store.write('pmstest',[1,3,5,7,9],{
+			waitFor:function(d){
+				return new Promise(function(res){
+					setTimeout(function(){
+						res(d.concat([1,1,1]));
+					},120);
+				});
+			}
+		});
+
+	});
+
+
 });
