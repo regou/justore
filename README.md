@@ -50,7 +50,7 @@ will write data to the store, return a Promise
     
 ```js
 options:{
-      waitFor: function(data){ //You can wait for other stores to change, remember store.write is a Promise too! 
+      waitFor: function(data){ //You can wait for other stores to change, remember store.write return a Promise too! 
         return store2.write('exampleKey',2);
       }
     }
