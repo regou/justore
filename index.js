@@ -1,4 +1,4 @@
-Pvar Immutable = require('immutable');
+var Immutable = require('immutable');
 var EventEmitter = require('eventemitter3');
 
 var isPromise = require('is-promise');
