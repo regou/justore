@@ -60,31 +60,38 @@ will write data to the store, return a Promise
     
     
 - `store.change`
-The [EventEmiter](https://nodejs.org/api/events.html#events_class_events_eventemitter) of the store
+
+    The [EventEmiter](https://nodejs.org/api/events.html#events_class_events_eventemitter) of the store
 
 - `store.trigger(key)`
-Just trigger the events
 
-```js
-store.trigger('todos');
-```
+    Just trigger the events
+    
+    ```js
+    store.trigger('todos');
+    ```
 
 - `store.read(key)`
-get value for attribute by passing the key.
-```js
-store.get("todos") --> ['drink','cook','eat']
-```
+
+    get value for attribute by passing the key.
+    
+    ```js
+    store.get("todos") --> ['drink','cook','eat']
+    ```
 
 - `store.readAsClone(key,isDeep)`
-same as `store.read(key)` ,but return a [DeepCloned](https://lodash.com/docs#clone) value ;
+
+    same as `store.read(key)` ,but return a [DeepCloned](https://lodash.com/docs#clone) value ;
 
 ### React Mixin helper
-- `store.createReactMixin(key)` 
-return a mixin. Will call `onStoreChange` method on a React component when store change.
+- `store.createReactMixin(key)`
+ 
+    return a mixin. Will call `onStoreChange` method on a React component when store change.
 
 
 ### Why my change event not fired?
 You may read the JavaScript Mutable objects (Array , Object),and change them directly without cloning.
+
 Clone before mutate them Or try these:
 
 - Trigger events by your self.  `store.trigger(key)`
