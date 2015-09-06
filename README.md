@@ -25,7 +25,7 @@ var store = new justore({},'Store Name');
 //write or change data to store
 store.write('todos',['drink','cook']);
 
-//read data
+//Read data
 store.read('todos');
 
 //Listen change
@@ -38,7 +38,9 @@ store.change.on('todos',function(newVal,prevVal){
 ### Advanced usage
 
 - `store.write(key,data [,options])`
-will write data to the store, return a Promise
+
+    Will write data to the store, return a Promise
+    
     ```js
     options:{
       mute:false, //Boolean if true,change the store without trigger change events 
@@ -73,7 +75,7 @@ will write data to the store, return a Promise
 
 - `store.read(key)`
 
-    get value for attribute by passing the key.
+    Get value for attribute by passing the key.
     
     ```js
     store.get("todos") --> ['drink','cook','eat']
@@ -81,12 +83,12 @@ will write data to the store, return a Promise
 
 - `store.readAsClone(key,isDeep)`
 
-    same as `store.read(key)` ,but return a [DeepCloned](https://lodash.com/docs#clone) value ;
+    Same as `store.read(key)` ,but return a [DeepCloned](https://lodash.com/docs#clone) value ;
 
 ### React Mixin helper
 - `store.createReactMixin(key)`
  
-    return a mixin. Will call `onStoreChange` method on a React component when store change.
+    Return a mixin. Will call `onStoreChange` method on a React component when store change.
 
 
 ### Why my change event not fired?
