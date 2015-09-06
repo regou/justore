@@ -1,5 +1,6 @@
 var Immutable = require('immutable');
 var EventEmitter = require('eventemitter3');
+var clone = require('lodash/Lang/clone');
 
 var isPromise = require('is-promise');
 
@@ -72,8 +73,19 @@ function Justore(initData,storeName) {
 
 	};
 
-	this.read = function(key){
+	self.read = function(key){
 		return key ? data.get(key) : data;
+	}
+
+
+
+	self.readAsClone = function(key,isDeep){
+		var isDeep = typeof(isDeep) === 'boolean' ? isDeep : true;
+		var ret = self.read(key);
+		if(!Immutable.Map.isMap(ret)){
+			ret = clone(ret,isDeep);
+		}
+		return ret;
 	}
 
 

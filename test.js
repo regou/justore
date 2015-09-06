@@ -111,5 +111,22 @@ describe('JuStore', function () {
 
 	});
 
+	it('Clone read', function () {
+
+
+		var d = [1,3,5,7,9];
+
+		store.write('d',d);
+
+		var temp = store.readAsClone('d');
+		temp.push(88);
+
+		should(temp).deepEqual([1,3,5,7,9,88]);
+		should(d).deepEqual([1,3,5,7,9]);
+
+
+
+	});
+
 
 });
