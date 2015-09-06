@@ -79,7 +79,7 @@ same as `store.read(key)` ,but return a [DeepCloned](https://lodash.com/docs#clo
 
 
 ### Why change event not fired?
-You read the JavaScript Mutable objects (Array , Object),and change them without clone.
+You may read the JavaScript Mutable objects (Array , Object),and change them directly without cloning.
 Clone before mutate it Or try these:
 
 - Trigger events by your self.  `store.trigger(key)`
