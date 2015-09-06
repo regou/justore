@@ -88,7 +88,18 @@ function Justore(initData,storeName) {
 		return ret;
 	}
 
-
+	self.createReactMixin = function(key){
+		return {
+			componentWillMount: function(){
+				var comp = this;
+				self.change.on(key,comp.onStoreChange);
+			},
+			componentWillUnmount:function(){
+				var comp = this;
+				self.change.removeListener(key,comp.onStoreChange);
+			}
+		}
+	};
 
 
 }

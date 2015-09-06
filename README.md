@@ -6,6 +6,7 @@ We don't need flux , just the store please!
 
 **The library itself require a Promise supported environment.**
 
+[TodoList Example](https://github.com/regou/justore-todo)
 
 ### Installation
 
@@ -36,9 +37,9 @@ store.change.on('todos',function(newVal,prevVal){
 
 ### Advanced usage
 
-`store.write(key,data [,options])`
+- `store.write(key,data [,options])`
 will write data to the store, return a Promise
-
+    ```js
     options:{
       mute:false, //Boolean if true,change the store without trigger change events 
       waitFor: function(data){ //Wait for other actions, such as http request, MUST return a Promise 
@@ -47,40 +48,44 @@ will write data to the store, return a Promise
         }) 
       }
     }
+    ```
     
-```js
-options:{
-      waitFor: function(data){ //You can wait for other stores to change, remember store.write return a Promise too! 
-        return store2.write('exampleKey',2);
-      }
-    }
-```
+    ```js
+    options:{
+          waitFor: function(data){ //You can wait for other stores to change, remember store.write return a Promise too! 
+            return store2.write('exampleKey',2);
+          }
+        }
+    ```
     
     
-`store.change`
+- `store.change`
 The [EventEmiter](https://nodejs.org/api/events.html#events_class_events_eventemitter) of the store
 
-`store.trigger(key)`
+- `store.trigger(key)`
 Just trigger the events
 
 ```js
 store.trigger('todos');
 ```
 
-`store.read(key)`
+- `store.read(key)`
 get value for attribute by passing the key.
 ```js
 store.get("todos") --> ['drink','cook','eat']
 ```
 
-`store.readAsClone(key,isDeep)`
+- `store.readAsClone(key,isDeep)`
 same as `store.read(key)` ,but return a [DeepCloned](https://lodash.com/docs#clone) value ;
 
-[Full Example](https://github.com/regou/justore-todo)
+### React Mixin helper
+- `store.createReactMixin(key)` 
+return a mixin. Will call `onStoreChange` method on a React component when store change.
 
-### Why change event not fired?
+
+### Why my change event not fired?
 You may read the JavaScript Mutable objects (Array , Object),and change them directly without cloning.
-Clone before mutate it Or try these:
+Clone before mutate them Or try these:
 
 - Trigger events by your self.  `store.trigger(key)`
 
