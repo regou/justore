@@ -4,7 +4,6 @@
 We don't need flux , just the store please!
 
 
-
 **The library itself require a Promise supported environment.**
 
 
@@ -77,6 +76,7 @@ store.get("todos") --> ['drink','cook','eat']
 `store.readAsClone(key,isDeep)`
 same as `store.read(key)` ,but return a [DeepCloned](https://lodash.com/docs#clone) value ;
 
+[Full Example](https://github.com/regou/justore-todo)
 
 ### Why change event not fired?
 You may read the JavaScript Mutable objects (Array , Object),and change them directly without cloning.
