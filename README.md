@@ -82,7 +82,7 @@ store.change.on('*',function(changedKeys){
 
     Get value for attribute by passing the key.
     ```js
-    store.get("todos") --> ['drink','cook','eat']
+    store.read("todos") --> ['drink','cook','eat']
     ```
 
 - `store.readAsClone(key,isDeep)`
@@ -97,7 +97,7 @@ store.change.on('*',function(changedKeys){
 
 
 
-### Why change event not fired?
+### Why sometimes change event not fired?
 You may read the JavaScript Mutable objects (Array , Object),and change them directly without cloning.
 Clone before mutate it Or try these:
 
