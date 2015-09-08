@@ -66,6 +66,21 @@ describe('JuStore', function () {
 		store.write('age',1);
 	});
 
+	it('Event "*" working', function (done) {
+		var store2 = new justore({},'teststore2');
+		store2.change.on('*',function(keys){
+
+			var fire = store2.read('Fire');
+			try{
+				should(fire).be.exactly(1);
+				should(keys[0]).be.exactly('Fire');
+				done();
+			}catch(err){done(err);}
+		});
+
+		store2.write('Fire',1);
+	});
+
 
 	it('Trigger events working with js mutable data', function (done) {
 

@@ -10,7 +10,6 @@ We don't need flux , just the store please!
 
 ### Installation
 
-
 ```sh
 npm install justore --save
 ```
@@ -19,82 +18,82 @@ npm install justore --save
 
 ```js
 var justore = require("justore");
-var store = new justore({},'Store Name');
+var initData = {};
+var store = new justore(initData,'Store Name');
 
 
-//write or change data to store
+//Write or change data to store, return a Promise
 store.write('todos',['drink','cook']);
 
-//Read data
+//Read data (Writing data into store is synchronous,so you can read & write in a same block)
 store.read('todos');
 
 //Listen change
 store.change.on('todos',function(newVal,prevVal){
   store.read('todos') === newVal //true
 });
-
+//Listen all changes
+store.change.on('*',function(changedKeys){
+  changedKeys.length == 1 //true
+});
 ```
+
 
 ### Advanced usage
 
 - `store.write(key,data [,options])`
-
-    Will write data to the store, return a Promise
-    
-    ```js
-    options:{
-      mute:false, //Boolean if true,change the store without trigger change events 
-      waitFor: function(data){ //Wait for other actions, such as http request, MUST return a Promise 
+Write data to the store, return a Promise
+```js
+store.write('todos',['drink','cook'],{
+      //Boolean if true.Change the store without trigger change events
+      mute:false, 
+      
+      //Wait for other actions, such as http request, MUST return a Promise 
+      waitFor: function(data){ 
         return new Promise(function(res){
-          resolve(data.concat['eat'])
+          resolve(data.concat['eat']);//Overwrite corresponding store value with resolved data  
         }) 
       }
-    }
-    ```
-    
-    ```js
-    options:{
-          waitFor: function(data){ //You can wait for other stores to change, remember store.write return a Promise too! 
-            return store2.write('exampleKey',2);
-          }
-        }
-    ```
-    
+});
+```    
+  
+You can wait for other stores to change, remember `store.write` return a Promise too!  
+```js
+options:{
+      waitFor: function(data){ 
+        return store2.write('exampleKey',2);
+      }
+}
+```
     
 - `store.change`
-
-    The [EventEmiter](https://nodejs.org/api/events.html#events_class_events_eventemitter) of the store
+The [EventEmiter](https://nodejs.org/api/events.html#events_class_events_eventemitter) of the store
 
 - `store.trigger(key)`
-
-    Just trigger the events
-    
-    ```js
-    store.trigger('todos');
-    ```
+Just trigger the events.*Normally you don't need to do this.*
+```js
+store.trigger('todos');
+```
 
 - `store.read(key)`
-
-    Get value for attribute by passing the key.
-    
-    ```js
-    store.get("todos") --> ['drink','cook','eat']
-    ```
+Get value for attribute by passing the key.
+```js
+store.get("todos") --> ['drink','cook','eat']
+```
 
 - `store.readAsClone(key,isDeep)`
+Similar to `store.read(key)` ,but return a [DeepCloned](https://lodash.com/docs#clone) value
 
-    Same as `store.read(key)` ,but return a [DeepCloned](https://lodash.com/docs#clone) value ;
 
 ### React Mixin helper
-- `store.createReactMixin(key)`
- 
+- `store.createReactMixin(key)` 
     Return a mixin. Will call `onStoreChange` method on a React component when store change.
 
 
-### Why my change event not fired?
-You may read the JavaScript Mutable objects (Array , Object),and change them directly without cloning.
 
-Clone before mutate them Or try these:
+### Why change event not fired?
+You may read the JavaScript Mutable objects (Array , Object),and change them directly without cloning.
+Clone before mutate it Or try these:
 
 - Trigger events by your self.  `store.trigger(key)`
 

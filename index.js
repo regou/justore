@@ -14,19 +14,19 @@ function Justore(initData,storeName) {
 
 	function triggerChange(){
 
-		var somethingChanged = null;
+		var changed = [];
 
 		data.forEach(function(itemData,key){
 			var prevItemData = previousData.get(key);
 			if(itemData !== prevItemData){
 				self.change.emit(key,itemData,prevItemData);
-				somethingChanged = key;
+				changed.push(key);
 				return false;
 			}
 		});
-		if(somethingChanged) {
+		if(changed.length) {
 			updatePreviousData();
-			self.change.emit('*', somethingChanged);
+			self.change.emit('*', changed);
 		}
 	}
 
@@ -88,6 +88,10 @@ function Justore(initData,storeName) {
 		return ret;
 	}
 
+
+	self.change = new EventEmitter();
+
+
 	self.createReactMixin = function(key){
 		return {
 			componentWillMount: function(){
@@ -101,10 +105,8 @@ function Justore(initData,storeName) {
 		}
 	};
 
-
 }
 
-Justore.prototype.change = new EventEmitter();
 
 
 
