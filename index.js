@@ -1,6 +1,6 @@
 var Immutable = require('immutable');
 var EventEmitter = require('eventemitter3');
-var clone = require('lodash/Lang/clone');
+var clone = require('lodash/lang/clone');
 
 var isPromise = require('is-promise');
 
