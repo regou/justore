@@ -53,17 +53,15 @@ describe('JuStore', function () {
 
 
 	it('Trigger events working', function (done) {
-
-		store.change.on('age',function(data){
-
-			var age = store.read('age');
-			should(age).be.exactly(1);
+		var store3 = new justore({age:3},'store3');
+		store3.change.on('age',function(data){
+			var age = store3.read('age');
+			should(age).be.exactly(3);
 			should(age).be.exactly(data);
 			done();
-
 		});
 
-		store.write('age',1);
+		store3.trigger('age');
 	});
 
 	it('Event "*" working', function (done) {

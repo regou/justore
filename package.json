@@ -1,6 +1,6 @@
 {
   "name": "justore",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "We don't need flux , just the store please",
   "main": "index.js",
   "scripts": {
@@ -13,6 +13,9 @@
   "keywords": [
     "flux",
     "react",
+    "flux store",
+    "Immutable",
+    "immutable store",
     "store",
     "pubsub"
   ],

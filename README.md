@@ -22,16 +22,18 @@ var initData = {};
 var store = new justore(initData,'Store Name');
 
 
+//Listen change
+//Add event listeners before change
+store.change.on('todos',function(newVal,prevVal){
+  store.read('todos') === newVal //true
+});
+
 //Write or change data to store, return a Promise
 store.write('todos',['drink','cook']);
 
 //Read data (Writing data into store is synchronous,so you can read & write in a same block)
 store.read('todos');
 
-//Listen change
-store.change.on('todos',function(newVal,prevVal){
-  store.read('todos') === newVal //true
-});
 //Listen all changes
 store.change.on('*',function(changedKeys){
   changedKeys.length == 1 //true
@@ -99,11 +101,11 @@ store.change.on('*',function(changedKeys){
 
 ### Why sometimes change event not fired?
 You may read the JavaScript Mutable objects (Array , Object),and change them directly without cloning.
-Clone before mutate it Or try these:
+Clone before mutate it or try one of these:
+
+- Use [Immutable](https://facebook.github.io/immutable-js/) data structures (Recommend)
 
 - Trigger events by your self.  `store.trigger(key)`
 
 - Read the data as clone.  `store.readAsClone(key)`
-
-- Use [Immutable](https://facebook.github.io/immutable-js/) data structures
 

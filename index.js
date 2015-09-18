@@ -12,13 +12,15 @@ function Justore(initData,storeName) {
 	var data = Immutable.Map(initData || {});
 	var previousData = data;
 
-	function triggerChange(){
+	function triggerChange(forceTriggerKey){
 
 		var changed = [];
 
 		data.forEach(function(itemData,key){
 			var prevItemData = previousData.get(key);
-			if(itemData !== prevItemData){
+
+			if(forceTriggerKey === key || itemData !== prevItemData){
+
 				self.change.emit(key,itemData,prevItemData);
 				changed.push(key);
 				return false;
@@ -71,6 +73,10 @@ function Justore(initData,storeName) {
 
 
 
+	};
+
+	self.trigger = function(key){
+		triggerChange(key);
 	};
 
 	self.read = function(key){
