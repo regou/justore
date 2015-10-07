@@ -27,7 +27,6 @@ function Justore(initData,storeName) {
 			}
 		});
 		if(changed.length) {
-			updatePreviousData();
 			self.change.emit('*', changed);
 		}
 	}
@@ -51,12 +50,14 @@ function Justore(initData,storeName) {
 		function triggerReject(reson){
 			self.change.emit('Error:'+key,reson);
 			console.warn('Justore write '+ self.name +' Error: ',reson);
-                        return Promise.reject(reson);
+            return Promise.reject(reson);
 		}
 
 		var setData = function(d){
 
 			data = data.set(key, d);
+			triggerHandler(data);
+			updatePreviousData();
 			return Promise.resolve(data);
 		};
 
@@ -65,10 +66,10 @@ function Justore(initData,storeName) {
 		if(isPromise(waitForPromise)){
 			return waitForPromise
 				.then(setData)
-				.then(triggerHandler,triggerReject);
+				.catch(triggerReject);
 		}else{
 			return setData(d)
-				.then(triggerHandler,triggerReject)
+				.catch(triggerReject)
 		}
 
 

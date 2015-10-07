@@ -66,17 +66,33 @@ describe('JuStore', function () {
 
 	it('Event "*" working', function (done) {
 		var store2 = new justore({},'teststore2');
+		var cur = 'Fire';
+		var activeKeys = [];
 		store2.change.on('*',function(keys){
 
-			var fire = store2.read('Fire');
+
+			var tar = store2.read(cur);
 			try{
-				should(fire).be.exactly(1);
-				should(keys[0]).be.exactly('Fire');
-				done();
+				if(cur=='Fire'){
+					should(tar).be.exactly(1);
+				}else{
+					should(tar).be.exactly(2);
+				}
+
+				should(keys).be.instanceof(Array);
+				should(keys.indexOf(cur)>=0).be.exactly(true);
+
+				activeKeys.push(cur);
+				if(activeKeys.length == 2){
+					done();
+				}
 			}catch(err){done(err);}
 		});
 
-		store2.write('Fire',1);
+		cur = 'Fire';
+		store2.write(cur,1);
+		cur = 'Water';
+		store2.write(cur,2);
 	});
 
 
