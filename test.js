@@ -141,5 +141,10 @@ describe('JuStore', function () {
 
 	});
 
+	it('Can create mixin', function () {
+		var mixin = store.createReactMixin('d');
+		should(mixin).have.properties(['componentWillMount','componentWillUnmount']);
+	});
+
 
 });
