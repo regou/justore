@@ -162,5 +162,17 @@ describe('JuStore', function () {
 		should(mixin).have.properties(['componentWillMount','componentWillUnmount']);
 	});
 
+	it('No call loop', function () {
+		var store = new justore({
+			vis:false,
+			dom:null
+		},'loopstore');
+		store.change.on('vis',function(){
+			store.write('dom',11);
+		});
+
+
+		store.write('vis',true);
+	});
 
 });
