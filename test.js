@@ -80,8 +80,7 @@ describe('JuStore', function () {
 				}
 
 				should(keys).be.instanceof(Array);
-				console.log(keys,cur);
-				should(keys.indexOf(cur)>=0).be.exactly(true);
+				should(keys.indexOf('Fire')>=0 || keys.indexOf('Water')>=0).be.exactly(true);
 
 				activeKeys.push(cur);
 				if(activeKeys.length == 2){

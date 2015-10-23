@@ -1,7 +1,7 @@
 var Immutable = require('immutable');
 var EventEmitter = require('eventemitter3');
 var clone = require('lodash/lang/clone');
-var nextTick = require('just-next-tick');
+var nextTick = require('next-tick');
 
 var isPromise = require('is-promise');
 
