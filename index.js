@@ -1,6 +1,7 @@
 var Immutable = require('immutable');
 var EventEmitter = require('eventemitter3');
 var clone = require('lodash/lang/clone');
+var nextTick = require('just-next-tick');
 
 var isPromise = require('is-promise');
 
@@ -12,6 +13,13 @@ function Justore(initData,storeName) {
 	var data = Immutable.Map(initData || {});
 	var previousData = data;
 
+	function emit(){
+		var args = arguments;
+		nextTick(function(){
+			self.change.emit.apply(self.change,args);
+		})
+	}
+
 	function triggerChange(forceTriggerKey){
 
 		var changed = [];
@@ -21,13 +29,13 @@ function Justore(initData,storeName) {
 
 			if(forceTriggerKey === key || itemData !== prevItemData){
 
-				self.change.emit(key,itemData,prevItemData);
+				emit(key,itemData,prevItemData);
 				changed.push(key);
 				return false;
 			}
 		});
 		if(changed.length) {
-			self.change.emit('*', changed);
+			emit('*', changed);
 		}
 	}
 
@@ -48,7 +56,7 @@ function Justore(initData,storeName) {
 		}
 
 		function triggerReject(reson){
-			self.change.emit('Error:'+key,reson);
+			emit('Error:'+key,reson);
 			console.warn('Justore write '+ self.name +' Error: ',reson);
             return Promise.reject(reson);
 		}
@@ -82,7 +90,7 @@ function Justore(initData,storeName) {
 
 	self.read = function(key){
 		return key ? data.get(key) : data;
-	}
+	};
 
 
 
@@ -99,20 +107,21 @@ function Justore(initData,storeName) {
 	self.change = new EventEmitter();
 
 
-	self.createReactMixin = function(key){
-		return {
-			componentWillMount: function(){
-				var comp = this;
-				self.change.on(key,comp.onStoreChange);
-			},
-			componentWillUnmount:function(){
-				var comp = this;
-				self.change.removeListener(key,comp.onStoreChange);
-			}
-		}
-	};
 
-}
+};
+
+Justore.prototype.createReactMixin = function(key){
+	return {
+		componentWillMount: function(){
+			var comp = this;
+			self.change.on(key,comp.onStoreChange);
+		},
+		componentWillUnmount:function(){
+			var comp = this;
+			self.change.removeListener(key,comp.onStoreChange);
+		}
+	}
+};
 
 
 

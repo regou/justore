@@ -80,6 +80,7 @@ describe('JuStore', function () {
 				}
 
 				should(keys).be.instanceof(Array);
+				console.log(keys,cur);
 				should(keys.indexOf(cur)>=0).be.exactly(true);
 
 				activeKeys.push(cur);
@@ -162,13 +163,14 @@ describe('JuStore', function () {
 		should(mixin).have.properties(['componentWillMount','componentWillUnmount']);
 	});
 
-	it('No call loop', function () {
+	it('No call loop', function (done) {
 		var store = new justore({
 			vis:false,
 			dom:null
 		},'loopstore');
 		store.change.on('vis',function(){
 			store.write('dom',11);
+			done();
 		});
 
 
