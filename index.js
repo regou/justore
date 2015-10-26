@@ -111,6 +111,7 @@ function Justore(initData,storeName) {
 };
 
 Justore.prototype.createReactMixin = function(key){
+	var self = this;
 	return {
 		componentWillMount: function(){
 			var comp = this;
