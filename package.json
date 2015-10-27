@@ -1,6 +1,6 @@
 {
   "name": "justore",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "We don't need flux , just the store please",
   "main": "index.js",
   "scripts": {
