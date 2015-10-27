@@ -167,6 +167,7 @@ describe('JuStore', function () {
 			vis:false,
 			dom:null
 		},'loopstore');
+		store.asyncEvents = true;
 		store.change.on('vis',function(){
 			store.write('dom',11);
 			done();

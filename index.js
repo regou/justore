@@ -13,11 +13,19 @@ function Justore(initData,storeName) {
 	var data = Immutable.Map(initData || {});
 	var previousData = data;
 
+
+	self.asyncEvents = false;
+
 	function emit(){
 		var args = arguments;
-		nextTick(function(){
+		if(self.asyncEvents){
+			nextTick(function(){
+				self.change.emit.apply(self.change,args);
+			})
+		}else{
 			self.change.emit.apply(self.change,args);
-		})
+		}
+
 	}
 
 	function triggerChange(forceTriggerKey){
