@@ -1,6 +1,7 @@
 var should = require('should/as-function');
 var justore = require('./index.js');
 var EventEmitter = require('eventemitter3');
+var Immutable = require('immutable');
 
 describe('JuStore', function () {
 
@@ -175,6 +176,51 @@ describe('JuStore', function () {
 
 
 		store.write('vis',true);
+	});
+
+
+	it('Can read all data', function () {
+		var store = new justore({
+			vis:false,
+			dom:null
+		},'allteststore');
+		var allData = store.read('*');
+
+		var bol = allData.equals(Immutable.Map({
+			vis:false,
+			dom:null
+		}));
+
+		should(bol).be.exactly(true);
+
+	});
+
+	it('Can write all data', function (done) {
+		var store = new justore({
+			vis:false,
+			dom:null
+		},'allteststore2');
+		var allData = store.read('*');
+
+
+		store.change.on('*',function(changedKeys){
+			validate();
+			should(changedKeys).deepEqual(['vis']);
+			done();
+		});
+		store.write('*',allData.set('vis',true));
+
+		function validate(){
+			var bol = store.read('*').equals(Immutable.Map({
+				vis:true,
+				dom:null
+			}));
+			should(bol).be.exactly(true);
+		};
+
+
+
+
 	});
 
 });

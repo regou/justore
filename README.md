@@ -68,6 +68,7 @@ store.change.on('*',function(changedKeys){
           }
     }
     ```
+    Note use '*' as key can overwrite all value by passing an ImmutableJS Map
         
 - `store.change`
 
@@ -86,6 +87,7 @@ store.change.on('*',function(changedKeys){
     ```js
     store.read("todos") --> ['drink','cook','eat']
     ```
+    Note use '*' as key can read all value as an ImmutableJS Map
 
 - `store.readAsClone(key,isDeep)`
 

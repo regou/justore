@@ -12,6 +12,26 @@ function Justore(initData,storeName) {
 
 	var data = Immutable.Map(initData || {});
 	var previousData = data;
+	function dataSetter(key,val){
+		if(key==='*'){
+			if(Immutable.Map.isMap(val)){
+				data = val;
+			}else{
+				throw new TypeError('* setter must be a ImmutableJS data map');
+			}
+		}else{
+			data = data.set(key,val)
+		}
+		return data;
+	}
+
+	function dataGetter(key){
+		if(key === undefined || key==='*'){
+			return data;
+		}else{
+			return data.get(key)
+		}
+	}
 
 
 	self.asyncEvents = false;
@@ -53,6 +73,8 @@ function Justore(initData,storeName) {
 	}
 
 
+
+
 	this.write = function (key, d, opt) {
 		var opt = opt || {};
 		var waitFor = opt.waitFor || function(){};
@@ -71,7 +93,7 @@ function Justore(initData,storeName) {
 
 		var setData = function(d){
 
-			data = data.set(key, d);
+			dataSetter(key,d);
 			triggerHandler(data);
 			updatePreviousData();
 			return Promise.resolve(data);
@@ -97,7 +119,7 @@ function Justore(initData,storeName) {
 	};
 
 	self.read = function(key){
-		return key ? data.get(key) : data;
+		return dataGetter(key);
 	};
 
 
