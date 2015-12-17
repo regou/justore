@@ -104,10 +104,10 @@ function Justore(initData,storeName) {
 		if(isPromise(waitForPromise)){
 			return waitForPromise
 				.then(setData)
-				.catch(triggerReject);
+				['catch'](triggerReject);
 		}else{
 			return setData(d)
-				.catch(triggerReject)
+				['catch'](triggerReject)
 		}
 
 
