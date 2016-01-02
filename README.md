@@ -1,7 +1,7 @@
 # Justore
 
 
-We don't need flux , just the store please!
+We don't need flux , just the store!
 
 
 **The library itself require a Promise supported environment.**
@@ -31,7 +31,7 @@ store.change.on('todos',function(newVal,prevVal){
 //Write or change data to store, return a Promise
 store.write('todos',['drink','cook']);
 
-//Read data (Writing data into store is synchronous,so you can read & write in a same block)
+//Read data (Writing data into store is synchronous,so you can read & write on same block)
 store.read('todos');
 
 //Listen all changes
@@ -42,6 +42,18 @@ store.change.on('*',function(changedKeys){
 
 
 ### Advanced usage
+
+- `store.read('*')`
+
+	Read all value (As an ImmutableJS Map)
+
+- `store.write('*',ImmutablejsMap)`
+
+	Overwrite store by passing an ImmutableJS Map (most likely read and modified from `store.read('*')`)
+	
+**Read & write `'*'` won't affect performance and they are recommended usage.**
+
+	
 
 - `store.write(key,data [,options])`
 
@@ -87,7 +99,6 @@ store.change.on('*',function(changedKeys){
     ```js
     store.read("todos") --> ['drink','cook','eat']
     ```
-    Note use '*' as key can read all value as an ImmutableJS Map
 
 - `store.readAsClone(key,isDeep)`
 
