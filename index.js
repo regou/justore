@@ -5,6 +5,8 @@ var nextTick = require('next-tick');
 
 var isPromise = require('is-promise');
 
+var Rx = require('rxjs/Rx');
+
 function Justore(initData,storeName) {
 	var self = this;
 
@@ -75,44 +77,66 @@ function Justore(initData,storeName) {
 
 
 
-	this.write = function (key, d, opt) {
-		var opt = opt || {};
-		var waitFor = opt.waitFor || function(){};
-		var mute = opt.mute;
 
-		function triggerHandler(d){
-			if(!mute){triggerChange()}
-			return d;
-		}
+	this.lock = false;
 
-		function triggerReject(reson){
-			emit('Error:'+key,reson);
-			console.warn('Justore write '+ self.name +' Error: ',reson);
-            return Promise.reject(reson);
-		}
-
-		var setData = function(d){
-
+	this.writeObservable = Rx.Observable.create(function (ob) {
+		self.write = function (key, d, opt) {
+			self.lock = true;
 			dataSetter(key,d);
-			triggerHandler(data);
-			updatePreviousData();
-			return Promise.resolve(data);
-		};
-
-
-		var waitForPromise = waitFor(d);
-		if(isPromise(waitForPromise)){
-			return waitForPromise
-				.then(setData)
-				['catch'](triggerReject);
-		}else{
-			return setData(d)
-				['catch'](triggerReject)
+			ob.next({key:key,d:d,opt:opt});
 		}
+	})
+	
+	this.writeObservable
+		.groupBy(val => val.key)
+		.subscribe(function (g) {
+			return g
+				.debounceTime(0)
+				// .filter(function (valArr) {
+				// 	debugger;
+				// 	return valArr.length > 0;
+				// })
+				// .map(valArr => valArr[valArr.length-1])
+				.subscribe(function (val) {
+					console.log(val);
+					return val;
+				})
+		})
+		
 
 
 
-	};
+
+	// this.write = function (key, d, opt) {
+	// 	var opt = opt || {};
+	// 	var mute = opt.mute;
+	//
+	// 	function triggerHandler(d){
+	// 		if(!mute){triggerChange()}
+	// 		return d;
+	// 	}
+	//
+	// 	function triggerReject(reson){
+	// 		emit('Error:'+key,reson);
+	// 		console.warn('Justore write '+ self.name +' Error: ',reson);
+     //        return Promise.reject(reson);
+	// 	}
+	//
+	// 	var setData = function(d){
+	//
+	// 		dataSetter(key,d);
+	// 		triggerHandler(data);
+	// 		updatePreviousData();
+	// 		return Promise.resolve(data);
+	// 	};
+	//
+	// 	return setData(d)
+	// 		['catch'](triggerReject)
+	//
+	//
+	//
+	// };
 
 	self.trigger = function(key){
 		triggerChange(key);
