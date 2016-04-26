@@ -3,9 +3,12 @@ var EventEmitter = require('eventemitter3');
 var clone = require('lodash/lang/clone');
 var nextTick = require('next-tick');
 
-var isPromise = require('is-promise');
 
-var Rx = require('rxjs/Rx');
+//var Rx = require('rxjs/Rx');
+var Observable = require('rxjs/Observable').Observable;
+require('rxjs/add/operator/groupBy');
+require('rxjs/add/operator/debounceTime');
+require('rxjs/add/operator/filter');
 
 function Justore(initData,storeName) {
 	var self = this;
@@ -79,9 +82,10 @@ function Justore(initData,storeName) {
 
 
 
-	this.writeObservable = Rx.Observable.create(function (ob) {
+	this.writeObservable = Observable.create(function (ob) {
 		self.write = function (key, d, opt) {
 			ob.next({key:key,d:d,opt:opt});
+			return self;
 		}
 	})
 	

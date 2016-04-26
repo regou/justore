@@ -2,7 +2,7 @@
   "name": "justore",
   "changelog": false,
   "release": true,
-  "version": "0.3.3",
+  "version": "1.0.0",
   "description": "We don't need flux , just the store please",
   "main": "index.js",
   "scripts": {
@@ -34,9 +34,8 @@
   "dependencies": {
     "eventemitter3": "^1.1.1",
     "immutable": ">=3.0.0",
-    "is-promise": "^2.0.0",
     "lodash": "^3.10.1",
     "next-tick": "^0.2.2",
-    "rxjs": "^5.0.0-beta.6"
+    "rxjs": "5.0.0-beta.6"
   }
 }
