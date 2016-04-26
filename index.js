@@ -78,12 +78,9 @@ function Justore(initData,storeName) {
 
 
 
-	this.lock = false;
 
 	this.writeObservable = Rx.Observable.create(function (ob) {
 		self.write = function (key, d, opt) {
-			self.lock = true;
-			dataSetter(key,d);
 			ob.next({key:key,d:d,opt:opt});
 		}
 	})
@@ -91,52 +88,36 @@ function Justore(initData,storeName) {
 	this.writeObservable
 		.groupBy(val => val.key)
 		.subscribe(function (g) {
+			function triggerReject(reson){
+				emit('Error:'+key,reson);
+				console.warn('Justore write '+ self.name +' Error: ',reson);
+			   return Promise.reject(reson);
+			}
+
 			return g
-				.debounceTime(0)
-				// .filter(function (valArr) {
-				// 	debugger;
-				// 	return valArr.length > 0;
-				// })
-				// .map(valArr => valArr[valArr.length-1])
-				.subscribe(function (val) {
-					console.log(val);
-					return val;
+				//.debounceTime(0)
+				.filter(function (conf) {
+					if(conf.key === '*'){
+						return true;
+					}
+					var itemData = conf.d;
+					var prevItemData = previousData.get(conf.key);
+					console.log(data.toJS(),previousData.toJS());
+					return itemData !== prevItemData
 				})
+				.subscribe(function (conf) {
+					console.log('conf',conf)
+					var opt = conf.opt || {};
+					var mute = opt.mute;
+
+					dataSetter(conf.key,conf.d);
+					if(!mute){triggerChange(conf.key)}
+
+					updatePreviousData()
+					return conf;
+				},triggerReject)
 		})
-		
 
-
-
-
-	// this.write = function (key, d, opt) {
-	// 	var opt = opt || {};
-	// 	var mute = opt.mute;
-	//
-	// 	function triggerHandler(d){
-	// 		if(!mute){triggerChange()}
-	// 		return d;
-	// 	}
-	//
-	// 	function triggerReject(reson){
-	// 		emit('Error:'+key,reson);
-	// 		console.warn('Justore write '+ self.name +' Error: ',reson);
-     //        return Promise.reject(reson);
-	// 	}
-	//
-	// 	var setData = function(d){
-	//
-	// 		dataSetter(key,d);
-	// 		triggerHandler(data);
-	// 		updatePreviousData();
-	// 		return Promise.resolve(data);
-	// 	};
-	//
-	// 	return setData(d)
-	// 		['catch'](triggerReject)
-	//
-	//
-	//
-	// };
 
 	self.trigger = function(key){
 		triggerChange(key);

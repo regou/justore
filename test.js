@@ -67,33 +67,32 @@ describe('JuStore', function () {
 
 	it('Event "*" working', function (done) {
 		var store2 = new justore({},'teststore2');
-		var cur = 'Fire';
-		var activeKeys = [];
+		var activeKeys = new Set();
 		store2.change.on('*',function(keys){
 
 
-			var tar = store2.read(cur);
-			try{
-				if(cur=='Fire'){
+			console.log('keys',keys);
+			should(keys).be.instanceof(Array);
+			should(keys.indexOf('Fire')>=0 || keys.indexOf('Water')>=0).be.exactly(true);
+
+			keys.forEach(function (key) {
+				var tar = store2.read(key);
+				if(key=='Fire'){
 					should(tar).be.exactly(1);
 				}else{
 					should(tar).be.exactly(2);
 				}
+				activeKeys.add(key)
+			})
 
-				should(keys).be.instanceof(Array);
-				should(keys.indexOf('Fire')>=0 || keys.indexOf('Water')>=0).be.exactly(true);
-
-				activeKeys.push(cur);
-				if(activeKeys.length == 2){
-					done();
-				}
-			}catch(err){done(err);}
+			console.log(activeKeys.size);
+			if(activeKeys.size == 2){
+				done();
+			}
 		});
 
-		cur = 'Fire';
-		store2.write(cur,1);
-		cur = 'Water';
-		store2.write(cur,2);
+		store2.write('Fire',1);
+		store2.write('Water',2);
 	});
 
 
@@ -118,30 +117,7 @@ describe('JuStore', function () {
 
 
 
-	// xit('Can pass waitforPromise', function (done) {
-	//
-	// 	store.change.on('pmstest',function(data){
-	//
-	// 		should(data).deepEqual([1,3,5,7,9,1,1,1]);
-	// 		done();
-	//
-	//
-	// 	});
-	//
-	//
-	// 	store.write('pmstest',[1,3,5,7,9],{
-	// 		waitFor:function(d){
-	// 			return new Promise(function(res){
-	// 				setTimeout(function(){
-	// 					res(d.concat([1,1,1]));
-	// 				},120);
-	// 			});
-	// 		}
-	// 	});
-	//
-	// });
-
-	it('Clone read', function () {
+	it('Can clone read', function () {
 
 
 		var d = [1,3,5,7,9];

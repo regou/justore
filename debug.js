@@ -36,5 +36,6 @@ setTimeout(function () {
 	store.write('dom',new Date());
 
 	store.write('vis',9);
+	store.write('bb','bb');
 },3000)
 
