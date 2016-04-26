@@ -3,12 +3,20 @@ var EventEmitter = require('eventemitter3');
 var clone = require('lodash/lang/clone');
 var nextTick = require('next-tick');
 
-var isPromise = require('is-promise');
+
+//var Rx = require('rxjs/Rx');
+var Observable = require('rxjs/Observable').Observable;
+require('rxjs/add/operator/groupBy');
+require('rxjs/add/operator/debounceTime');
+require('rxjs/add/operator/filter');
 
 function Justore(initData,storeName) {
 	var self = this;
 
 	self.name = storeName || 'Anonymous Store';
+
+	self.asyncEvents = false;
+	self.bufferWrite = true;
 
 	var data = Immutable.Map(initData || {});
 	var previousData = data;
@@ -32,9 +40,6 @@ function Justore(initData,storeName) {
 			return data.get(key)
 		}
 	}
-
-
-	self.asyncEvents = false;
 
 	function emit(){
 		var args = arguments;
@@ -75,44 +80,50 @@ function Justore(initData,storeName) {
 
 
 
-	this.write = function (key, d, opt) {
-		var opt = opt || {};
-		var waitFor = opt.waitFor || function(){};
-		var mute = opt.mute;
 
-		function triggerHandler(d){
-			if(!mute){triggerChange()}
-			return d;
+
+	this.writeObservable = Observable.create(function (ob) {
+		self.write = function (key, d, opt) {
+			ob.next({key:key,d:d,opt:opt});
+			return self;
 		}
-
-		function triggerReject(reson){
-			emit('Error:'+key,reson);
-			console.warn('Justore write '+ self.name +' Error: ',reson);
-            return Promise.reject(reson);
-		}
-
-		var setData = function(d){
-
-			dataSetter(key,d);
-			triggerHandler(data);
-			updatePreviousData();
-			return Promise.resolve(data);
-		};
+	})
+	
+	this.writeObservable
+		.groupBy(val => val.key)
+		.subscribe(function (g) {
+			function triggerReject(reson){
+				emit('Error:'+key,reson);
+				console.warn('Justore write '+ self.name +' Error: ',reson);
+			   return Promise.reject(reson);
+			}
 
 
-		var waitForPromise = waitFor(d);
-		if(isPromise(waitForPromise)){
-			return waitForPromise
-				.then(setData)
-				['catch'](triggerReject);
-		}else{
-			return setData(d)
-				['catch'](triggerReject)
-		}
+			function getGroupedObservable() {
+				return self.bufferWrite ? g.debounceTime(0) : g;
+			}
 
+			return getGroupedObservable()
+				.filter(function (conf) {
+					if(conf.key === '*'){
+						return true;
+					}
+					var itemData = conf.d;
+					var prevItemData = previousData.get(conf.key);
+					return itemData !== prevItemData
+				})
+				.subscribe(function (conf) {
+					var opt = conf.opt || {};
+					var mute = opt.mute;
 
+					dataSetter(conf.key,conf.d);
+					if(!mute){triggerChange(conf.key)}
 
-	};
+					updatePreviousData()
+					return conf;
+				},triggerReject)
+		})
+
 
 	self.trigger = function(key){
 		triggerChange(key);
@@ -154,6 +165,7 @@ Justore.prototype.createReactMixin = function(key){
 	}
 };
 
+Justore.Immutable = Immutable;
 
 
 

@@ -31,9 +31,6 @@ store.change.on('todos',function(newVal,prevVal){
 //Write or change data to store, return a Promise
 store.write('todos',['drink','cook']);
 
-//Read data (Writing data into store is synchronous,so you can read & write on same block)
-store.read('todos');
-
 //Listen all changes
 store.change.on('*',function(changedKeys){
   changedKeys.length == 1 //true
@@ -57,28 +54,12 @@ store.change.on('*',function(changedKeys){
 
 - `store.write(key,data [,options])`
 
-    Write data to the store, return a Promise
+    Write data to the store, return store
     ```js
     store.write('todos',['drink','cook'],{
           //Boolean. If true, change the store without trigger any events
-          mute:false, 
-          
-          //Wait for other actions, such as http request, MUST return a Promise 
-          waitFor: function(data){ 
-            return new Promise(function(res){
-              resolve(data.concat['eat']);//Overwrite corresponding store value with resolved data  
-            }) 
-          }
+          mute:false
     });
-    ```    
-      
-    You can wait for other stores to change, remember `store.write` return a Promise too!  
-    ```js
-    options:{
-          waitFor: function(data){ 
-            return store2.write('exampleKey',2);
-          }
-    }
     ```
     Note use '*' as key can overwrite all value by passing an ImmutableJS Map
         
@@ -92,6 +73,10 @@ store.change.on('*',function(changedKeys){
     ```js
     store.trigger('todos');
     ```
+
+- `store.bufferWrite = false` (Default is true)
+
+	As default, write data is asynchronous and multiple write actions trigger event only once, set `bufferWrite` to `false` to disable it.
 
 - `store.read(key)`
 

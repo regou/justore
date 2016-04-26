@@ -20,3 +20,22 @@ store.change.on('vis',function(val){
 
 
 store.write('vis',true);
+store.write('vis',3);
+store.write('vis',4);
+store.write('vis',5);
+store.write('vis',6);
+store.write('bb',7);
+store.write('vis',8);
+
+
+setTimeout(function () {
+	store.write('bb','bb');
+},1000)
+
+setTimeout(function () {
+	store.write('dom',new Date());
+
+	store.write('vis',9);
+	store.write('bb','bb');
+},3000)
+
