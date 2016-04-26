@@ -6,6 +6,7 @@ var Immutable = require('immutable');
 describe('JuStore', function () {
 
 	var store = new justore({},'teststore');
+	store.bufferWrite = false;
 
 
 	it('eventemitter3 working', function (done) {
@@ -30,6 +31,56 @@ describe('JuStore', function () {
 		store.write('name','wx');
 
 		should(store.read('name')).be.exactly('wx');
+	});
+
+	it('Can buffer write 1', function (done) {
+		var store = new justore({
+			name:'wx'
+		},'buffered store');
+		var results = [];
+		store.change.on('name',function (val) {
+			results.push(val)
+		})
+
+		store.write('name','wx');
+		store.write('name','wx');
+		store.write('name','wx');
+		store.write('name','22');
+		store.write('name','wx');
+		store.write('name','22');
+
+		setTimeout(function () {
+			should(store.read('name')).be.exactly('22');
+			should(results).deepEqual(['22']);
+			done()
+		},50)
+
+	});
+
+
+	it('Can buffer write 2', function (done) {
+		var store = new justore({
+			name:'wx'
+		},'buffered store');
+		var results = [];
+		store.change.on('name',function (val) {
+			results.push(val)
+		})
+
+		store.write('name','wx');
+		store.write('name','wx');
+		store.write('name','wx');
+		store.write('name','22');
+		store.write('name','wx');
+		store.write('name','22');
+		setTimeout(()=>store.write('name','qq'),0);
+
+		setTimeout(function () {
+			should(store.read('name')).be.exactly('qq');
+			should(results).deepEqual(['22','qq']);
+			done()
+		},50)
+
 	});
 
 
@@ -71,7 +122,6 @@ describe('JuStore', function () {
 		store2.change.on('*',function(keys){
 
 
-			console.log('keys',keys);
 			should(keys).be.instanceof(Array);
 			should(keys.indexOf('Fire')>=0 || keys.indexOf('Water')>=0).be.exactly(true);
 
@@ -85,7 +135,6 @@ describe('JuStore', function () {
 				activeKeys.add(key)
 			})
 
-			console.log(activeKeys.size);
 			if(activeKeys.size == 2){
 				done();
 			}

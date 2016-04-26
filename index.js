@@ -12,6 +12,9 @@ function Justore(initData,storeName) {
 
 	self.name = storeName || 'Anonymous Store';
 
+	self.asyncEvents = false;
+	self.bufferWrite = true;
+
 	var data = Immutable.Map(initData || {});
 	var previousData = data;
 	function dataSetter(key,val){
@@ -34,9 +37,6 @@ function Justore(initData,storeName) {
 			return data.get(key)
 		}
 	}
-
-
-	self.asyncEvents = false;
 
 	function emit(){
 		var args = arguments;
@@ -94,19 +94,21 @@ function Justore(initData,storeName) {
 			   return Promise.reject(reson);
 			}
 
-			return g
-				//.debounceTime(0)
+
+			function getGroupedObservable() {
+				return self.bufferWrite ? g.debounceTime(0) : g;
+			}
+
+			return getGroupedObservable()
 				.filter(function (conf) {
 					if(conf.key === '*'){
 						return true;
 					}
 					var itemData = conf.d;
 					var prevItemData = previousData.get(conf.key);
-					console.log(data.toJS(),previousData.toJS());
 					return itemData !== prevItemData
 				})
 				.subscribe(function (conf) {
-					console.log('conf',conf)
 					var opt = conf.opt || {};
 					var mute = opt.mute;
 
@@ -159,6 +161,7 @@ Justore.prototype.createReactMixin = function(key){
 	}
 };
 
+Justore.Immutable = Immutable;
 
 
 
