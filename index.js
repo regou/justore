@@ -88,14 +88,13 @@ function Justore(initData,storeName) {
 			return self;
 		}
 	})
-	
+
 	this.writeObservable
 		.groupBy(val => val.key)
 		.subscribe(function (g) {
 			function triggerReject(reson){
 				emit('Error:'+key,reson);
 				console.warn('Justore write '+ self.name +' Error: ',reson);
-			   return Promise.reject(reson);
 			}
 
 
