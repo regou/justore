@@ -90,7 +90,7 @@ function Justore(initData,storeName) {
 	})
 
 	this.writeObservable
-		.groupBy(val => val.key)
+		.groupBy(function(val){return val.key})
 		.subscribe(function (g) {
 			function triggerReject(reson){
 				emit('Error:'+key,reson);
