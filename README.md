@@ -4,7 +4,7 @@
 We don't need flux , just the store!
 
 
-~~**The library itself require a Promise supported environment.**~~
+~~**The library itself requires a Promise supported environment.**~~
 
 [TodoList Example](https://github.com/regou/justore-todo)
 
