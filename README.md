@@ -52,7 +52,29 @@ store.change.on('*',function(changedKeys){
 	
 **Read & write `'*'` won't affect performance and they are recommended usage.**
 
-	
+- `store.update(updeepSchema[,value])`
+
+	Update store by passing an [updeepSchema](https://github.com/substantial/updeep/tree/37cf81dd8377bd4f6fbd196407d0ac452cd6f825)
+
+```js
+//Update by array schema
+var store1 = new justore({
+			scoreboard:{
+				scores: {
+					team1: 0,
+					team2: 0
+				}
+			}
+		},'updatestore1');
+store1.update('scoreboard.scores.team1',2);
+
+//Update by object schema
+var store2 = new justore({
+			todos:[{text:'a',done:false},{text:'b',done:false}]
+		},'updatestore2');
+store2.update({todos:{1:{done:true}}});
+```
+
 
 - `store.write(key,data [,options])`
 
@@ -78,7 +100,7 @@ store.change.on('*',function(changedKeys){
 
 - `store.bufferWrite = false` (Default is true)
 
-	As default, write data is asynchronous and multiple write actions trigger event only once, set `bufferWrite` to `false` to disable it.
+	As default, write/update data is asynchronous and multiple actions trigger event only once, set `bufferWrite` to `false` to disable it.
 
 - `store.read(key)`
 
@@ -104,6 +126,10 @@ You may read the JavaScript Mutable objects (See video detail: [Avoiding Array M
 Clone before mutate it or try one of these:
 
 - Use [Immutable](https://facebook.github.io/immutable-js/) data structures (Recommend)
+
+- Use `store.update` to manipulate deep nested objects or arrays
+
+- Consider Redux's suggestions about '[Handing more actions](http://redux.js.org/docs/basics/Reducers.html#handling-more-actions)'
 
 - Trigger events by your self.  `store.trigger(key)`
 

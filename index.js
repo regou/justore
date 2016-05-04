@@ -1,6 +1,9 @@
+'use strict';
 var Immutable = require('immutable');
 var EventEmitter = require('eventemitter3');
 var clone = require('lodash/lang/clone');
+var objectKeys = require('lodash/object/keys');
+
 var nextTick = require('next-tick');
 
 
@@ -10,10 +13,17 @@ require('rxjs/add/operator/groupBy');
 require('rxjs/add/operator/debounceTime');
 require('rxjs/add/operator/filter');
 
+
+var u = require('updeep');
+
 function Justore(initData,storeName) {
 	var self = this;
 
 	self.name = storeName || 'Anonymous Store';
+
+	self._getErrorMsg = function (msg) {
+		return '[Store ' + self.name + '] ' + msg;
+	}
 
 	self.asyncEvents = false;
 	self.bufferWrite = true;
@@ -25,7 +35,7 @@ function Justore(initData,storeName) {
 			if(Immutable.Map.isMap(val)){
 				data = val;
 			}else{
-				throw new TypeError('* setter must be a ImmutableJS data map');
+				throw new TypeError(self._getErrorMsg('* setter must be a ImmutableJS Map'));
 			}
 		}else{
 			data = data.set(key,val)
@@ -137,10 +147,42 @@ function Justore(initData,storeName) {
 	self.readAsClone = function(key,isDeep){
 		var isDeep = typeof(isDeep) === 'boolean' ? isDeep : true;
 		var ret = self.read(key);
-		if(!Immutable.Map.isMap(ret)){
+		if(!Immutable.Iterable.isIterable(ret)){
 			ret = clone(ret,isDeep);
 		}
 		return ret;
+	}
+
+	self.update = function (updeepSchema) {
+
+		function safetyRead(key) {
+			var oriData = data.get(key);
+			if(Immutable.Iterable.isIterable(oriData)){
+				throw TypeError(self._getErrorMsg('Not support update Immutablejs Iterables, plain objects&arrays only.'))
+			}else{
+				return oriData;
+			}
+		}
+
+		var val = arguments[1];
+		if(typeof updeepSchema === 'string' && val!==undefined){
+			(function () {
+				var path = updeepSchema.split('.');
+				var key = path[0];
+				var newVal = u.updateIn(path.slice(1,path.length),val,safetyRead(key));
+				self.write(key,newVal);
+			})();
+		}else if(typeof updeepSchema === 'object'){
+			(function () {
+				var keys = Object.keys(updeepSchema);
+				keys.forEach(function (key) {
+					var newVal = u(updeepSchema[key],safetyRead(key));
+					self.write(key,newVal);
+				})
+			})();
+		}
+
+		return self;
 	}
 
 
