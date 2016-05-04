@@ -100,7 +100,7 @@ store.change.on('*',function(changedKeys){
 
 
 ### Why sometimes change event not fired?
-You may read the JavaScript Mutable objects (Array , Object),and change them directly without cloning.
+You may read the JavaScript Mutable objects (See detail: [Array](https://egghead.io/lessons/javascript-redux-avoiding-array-mutations-with-concat-slice-and-spread) , [Object](https://egghead.io/lessons/javascript-redux-avoiding-object-mutations-with-object-assign-and-spread)),and change them directly without cloning.
 Clone before mutate it or try one of these:
 
 - Use [Immutable](https://facebook.github.io/immutable-js/) data structures (Recommend)
