@@ -56,7 +56,7 @@ store.change.on('*',function(changedKeys){
 
 	Update store by passing an [updeepSchema](https://github.com/substantial/updeep/tree/37cf81dd8377bd4f6fbd196407d0ac452cd6f825)
 	```js
-	//Update by array schema
+	//Update by string schema
 	var store1 = new justore({
 				scoreboard:{
 					scores: {
