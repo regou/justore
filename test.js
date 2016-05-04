@@ -3,6 +3,10 @@ var justore = require('./index.js');
 var EventEmitter = require('eventemitter3');
 var Immutable = require('immutable');
 
+function validateStore(store,d) {
+	should(store.read('*').toJS()).deepEqual(d);
+}
+
 describe('JuStore', function () {
 
 	var store = new justore({},'teststore');
@@ -247,5 +251,100 @@ describe('JuStore', function () {
 
 
 	});
+
+
+
+
+	it('Can update data by string schema', function (done) {
+		var store = new justore({
+			scoreboard:{
+				scores: {
+					team1: 0,
+					team2: 0
+				}
+			}
+		},'updatestore1');
+
+		store.change.on('scoreboard',function(newVal){
+			should(newVal).be.exactly(store.read('scoreboard'));
+			should(newVal).deepEqual({
+				scores: {
+					team1: 2,
+					team2: 0
+				}
+			});
+
+			validateStore(store,{
+				scoreboard:{
+					scores: {
+						team1: 2,
+						team2: 0
+					}
+				}
+			});
+			done();
+		});
+
+		store.update('scoreboard.scores.team1',2);
+	});
+
+
+	it('Can update data by object schema', function (done) {
+		var store = new justore({
+			scoreboard:{
+				scores: {
+					team1: 0,
+					team2: [15]
+				}
+			}
+		},'updatestore2');
+
+		var times = 0;
+		store.change.on('*',function(keys){
+			times++;
+			if(times == 2){
+				validateStore(store,{
+					total:2,
+					scoreboard:{
+						scores: {
+							team1: 2,
+							team2: [15]
+						}
+					}
+				});
+				done();
+			}
+		});
+
+		store.update({
+			total:2,
+			scoreboard:{
+				scores:{
+					team1:2
+				}
+			}
+		});
+	});
+
+
+	it('Can update array by object schema', function (done) {
+		var store = new justore({
+			todos:[{text:'a',done:false},{text:'b',done:false}]
+		},'updatestore3');
+
+
+		store.change.on('*',function(keys){
+			validateStore(store,{
+				todos:[{text:'a',done:false},{text:'b',done:true}]
+			});
+			done();
+		});
+
+
+		store.update({todos:{1:{done:true}}});
+
+	});
+
+
 
 });
