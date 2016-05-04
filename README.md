@@ -1,5 +1,7 @@
 # Justore
 
+[![Build Status via Travis CI](https://travis-ci.org/regou/justore.svg?branch=master)](https://travis-ci.org/regou/justore)
+[![NPM version](https://img.shields.io/npm/v/justore.svg)](https://www.npmjs.com/package/justore)
 
 We don't need flux , just the store!
 
