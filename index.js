@@ -2,7 +2,7 @@
 var Immutable = require('immutable');
 var EventEmitter = require('eventemitter3');
 var clone = require('lodash/lang/clone');
-var objectKeys = require('lodash/object/keys');
+
 
 var nextTick = require('next-tick');
 
@@ -165,7 +165,7 @@ function Justore(initData,storeName) {
 		}
 
 		var val = arguments[1];
-		if(typeof updeepSchema === 'string' && val!==undefined){
+		if(typeof updeepSchema === 'string'){
 			(function () {
 				var path = updeepSchema.split('.');
 				var key = path[0];
@@ -207,6 +207,8 @@ Justore.prototype.createReactMixin = function(key){
 };
 
 Justore.Immutable = Immutable;
+
+Justore.u = u;
 
 
 
