@@ -345,6 +345,32 @@ describe('JuStore', function () {
 
 	});
 
+	it('Can buffer update', function (done) {
+		var store = new justore({
+			target:{name:'wx',bol:true}
+		},'update buffered store');
+		var results = [];
+		store.change.on('target',function (val) {
+			results.push(val.name);
+		})
+
+		store.update('target.name','wx');
+		store.update('target.name','wx');
+		store.update('target.name','wx');
+		store.update('target.name','22');
+		store.update('target.name','wx');
+		store.update('target.bol',false);
+		store.update('target.name','22');
+		setTimeout(()=>store.update('target.name','qq'),0);
+
+		setTimeout(function () {
+			should(store.read('target')).deepEqual({name:'qq',bol:false});
+			should(results).deepEqual(['22','qq']);
+			done()
+		},50)
+
+	});
+
 
 
 });

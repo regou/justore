@@ -99,7 +99,7 @@ store.change.on('*',function(changedKeys){
 
 - `store.bufferWrite = false` (Default is true)
 
-	As default, write/update data is asynchronous and multiple actions trigger event only once, set `bufferWrite` to `false` to disable it.
+	As default, write/update data multiple times trigger event only once, set `bufferWrite` to `false` to disable it.
 
 - `store.read(key)`
 

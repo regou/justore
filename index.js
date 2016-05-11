@@ -12,6 +12,8 @@ var Observable = require('rxjs/Observable').Observable;
 require('rxjs/add/operator/groupBy');
 require('rxjs/add/operator/debounceTime');
 require('rxjs/add/operator/filter');
+require('rxjs/add/operator/do');
+require('rxjs/add/operator/map');
 
 
 var u = require('updeep');
@@ -109,24 +111,27 @@ function Justore(initData,storeName) {
 
 
 			function getGroupedObservable() {
-				return self.bufferWrite ? g.debounceTime(0) : g;
+				var ob = g
+					.filter(function (conf) {
+						if(conf.key === '*'){
+							return true;
+						}
+						var itemData = conf.d;
+						var prevItemData = previousData.get(conf.key);
+						return itemData !== prevItemData
+					})
+					.do(function (conf) {
+						dataSetter(conf.key,conf.d);
+						return conf;
+					})
+
+
+				return self.bufferWrite ? ob.debounceTime(0) : ob;
 			}
 
 			return getGroupedObservable()
-				.filter(function (conf) {
-					if(conf.key === '*'){
-						return true;
-					}
-					var itemData = conf.d;
-					var prevItemData = previousData.get(conf.key);
-					return itemData !== prevItemData
-				})
 				.subscribe(function (conf) {
-					var opt = conf.opt || {};
-					var mute = opt.mute;
-
-					dataSetter(conf.key,conf.d);
-					if(!mute){triggerChange(conf.key)}
+					if(!conf.mute){triggerChange(conf.key)}
 
 					updatePreviousData()
 					return conf;
