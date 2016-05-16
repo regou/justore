@@ -372,5 +372,16 @@ describe('JuStore', function () {
 	});
 
 
+	it('Can report', function () {
+		var store = new justore({
+			target:{name:'wx',bol:true}
+		},'report store');
+
+		should(store.report()).deepEqual({
+			target:{name:'wx',bol:true}
+		});
+	});
+
+
 
 });

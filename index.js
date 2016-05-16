@@ -211,6 +211,10 @@ Justore.prototype.createReactMixin = function(key){
 	}
 };
 
+Justore.prototype.report = function(){
+	return this.read('*').toJS();
+};
+
 Justore.Immutable = Immutable;
 
 Justore.u = u;

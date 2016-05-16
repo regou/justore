@@ -111,7 +111,12 @@ store.change.on('*',function(changedKeys){
 - `store.readAsClone(key,isDeep)`
 
     Similar to `store.read(key)` ,but return a [DeepCloned](https://lodash.com/docs#clone) value
-    
+
+- `store.report()`
+
+    return the full store data as equivalent pure JavaScript Object
+
+
 
 ### React Mixin helper
 - `store.createReactMixin(key)`
