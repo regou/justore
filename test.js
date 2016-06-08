@@ -123,6 +123,7 @@ describe('JuStore', function () {
 	it('Event "*" working', function (done) {
 		var store2 = new justore({},'teststore2');
 		var activeKeys = new Set();
+		var called = false;
 		store2.change.on('*',function(keys){
 
 
@@ -139,8 +140,9 @@ describe('JuStore', function () {
 				activeKeys.add(key)
 			})
 
-			if(activeKeys.size == 2){
+			if(activeKeys.size == 2 && !called){
 				done();
+				called = true;
 			}
 		});
 

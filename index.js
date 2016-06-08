@@ -76,7 +76,7 @@ function Justore(initData,storeName) {
 
 				emit(key,itemData,prevItemData);
 				changed.push(key);
-				return false;
+				//return false;
 			}
 		});
 		if(changed.length) {
