@@ -128,7 +128,7 @@ describe('JuStore', function () {
 
 
 			should(keys).be.instanceof(Array);
-			should(keys.indexOf('Fire')>=0 || keys.indexOf('Water')>=0).be.exactly(true);
+			//should(keys.indexOf('Fire')>=0 || keys.indexOf('Water')>=0).be.exactly(true);
 
 			keys.forEach(function (key) {
 				var tar = store2.read(key);
@@ -140,7 +140,7 @@ describe('JuStore', function () {
 				activeKeys.add(key)
 			})
 
-			if(activeKeys.size == 2 && !called){
+			if(activeKeys.has('Fire') && activeKeys.has('Water') && !called){
 				done();
 				called = true;
 			}
