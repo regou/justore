@@ -96,8 +96,16 @@ function Justore(initData,storeName) {
 
 	this.writeObservable = Observable.create(function (ob) {
 		self.write = function (key, d, opt) {
-			ob.next({key:key,d:d,opt:opt});
-			return self;
+			var conf = {key:key,d:d,opt:opt||{}}
+			if(conf.opt.bufferWrite === false){
+				dataSetter(conf.key,conf.d);
+				if(!conf.opt.mute){triggerChange(conf.key)}
+				updatePreviousData();
+				return self;
+			}else{
+				ob.next(conf);
+				return self;
+			}
 		}
 	})
 
@@ -131,7 +139,7 @@ function Justore(initData,storeName) {
 
 			return getGroupedObservable()
 				.subscribe(function (conf) {
-					if(!conf.mute){triggerChange(conf.key)}
+					if(!conf.opt.mute){triggerChange(conf.key)}
 
 					updatePreviousData()
 					return conf;
