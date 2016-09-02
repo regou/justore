@@ -97,15 +97,10 @@ function Justore(initData,storeName) {
 	this.writeObservable = Observable.create(function (ob) {
 		self.write = function (key, d, opt) {
 			var conf = {key:key,d:d,opt:opt||{}}
-			if(conf.opt.bufferWrite === false){
-				dataSetter(conf.key,conf.d);
-				if(!conf.opt.mute){triggerChange(conf.key)}
-				updatePreviousData();
-				return self;
-			}else{
-				ob.next(conf);
-				return self;
-			}
+			dataSetter(conf.key,conf.d);
+			ob.next(conf);
+			return self;
+
 		}
 	})
 
@@ -128,10 +123,10 @@ function Justore(initData,storeName) {
 						var prevItemData = previousData.get(conf.key);
 						return itemData !== prevItemData
 					})
-					.do(function (conf) {
-						dataSetter(conf.key,conf.d);
-						return conf;
-					})
+					// .do(function (conf) {
+					// 	dataSetter(conf.key,conf.d);
+					// 	return conf;
+					// })
 
 
 				return self.bufferWrite ? ob.debounceTime(0) : ob;
