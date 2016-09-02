@@ -37,6 +37,25 @@ describe('JuStore', function () {
 		should(store.read('name')).be.exactly('wx');
 	});
 
+
+	it('Write is sync', function () {
+
+		var store = new justore({
+			val:'aa'
+		},'sync test');
+
+		should(store.read('val')).be.exactly('aa');
+
+		store.write('val','bb');
+		should(store.read('val')).be.exactly('bb');
+
+		store.write('val','cc');
+		should(store.read('val')).be.exactly('cc');
+
+		store.write('val','dd');
+		should(store.read('val')).be.exactly('dd');
+	});
+
 	it('Can buffer write 1', function (done) {
 		var store = new justore({
 			name:'wx'
