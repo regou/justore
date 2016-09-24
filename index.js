@@ -15,6 +15,7 @@ require('rxjs/add/operator/debounceTime');
 require('rxjs/add/operator/filter');
 require('rxjs/add/operator/do');
 require('rxjs/add/operator/map');
+require('rxjs/add/operator/mergeMap');
 
 
 var u = require('updeep');
@@ -114,44 +115,36 @@ function Justore(initData,storeName) {
 		dataSetter(conf.key,conf.d);
 		self.writeSubject.next(conf);
 		return self;
+	};
+
+
+	function triggerReject(reson){
+		emit('Error:'+key,reson);
+		console.warn('Justore write '+ self.name +' Error: ',reson);
 	}
 
 	this.writeSubject
 		.groupBy(function(val){return val.key})
-		.subscribe(function (g) {
-			function triggerReject(reson){
-				emit('Error:'+key,reson);
-				console.warn('Justore write '+ self.name +' Error: ',reson);
-			}
+		.flatMap((g)=>{
+			var ob = g
+				.filter(function (conf) {
+					if(conf.key === '*'){
+						return true;
+					}
+					var itemData = conf.d;
+					var prevItemData = previousData.get(conf.key);
+					return itemData !== prevItemData
+				});
+			ob = self.bufferWrite ? ob.debounceTime(0) : ob;
 
-
-			function getGroupedObservable() {
-				var ob = g
-					.filter(function (conf) {
-						if(conf.key === '*'){
-							return true;
-						}
-						var itemData = conf.d;
-						var prevItemData = previousData.get(conf.key);
-						return itemData !== prevItemData
-					})
-					// .do(function (conf) {
-					// 	dataSetter(conf.key,conf.d);
-					// 	return conf;
-					// })
-
-
-				return self.bufferWrite ? ob.debounceTime(0) : ob;
-			}
-
-			return getGroupedObservable()
-				.subscribe(function (conf) {
-					if(!conf.opt.mute){triggerChange(conf.key)}
-
-					updatePreviousData()
-					return conf;
-				},triggerReject)
+			return ob;
 		})
+		.subscribe(function (conf) {
+			if(!conf.opt.mute){triggerChange(conf.key)}
+
+			updatePreviousData();
+			return conf;
+		},triggerReject)
 
 
 	/**
@@ -188,8 +181,9 @@ function Justore(initData,storeName) {
 
 	/**
 	 * Update by object schema
-	 * @param {Object|String} updeepSchema - Store key
-	 * @see @see {@link https://github.com/substantial/updeep|Updeep}
+	 * @param {Object|String} updeepSchema
+	 * @param {Object|String} [val] -Update value
+	 * @see {@link https://github.com/substantial/updeep|Updeep}
 	 */
 	self.update = function (updeepSchema) {
 
@@ -226,7 +220,7 @@ function Justore(initData,storeName) {
 
 	/**
 	 * The event emitter of the store
-	 * @see @see {@link https://github.com/primus/EventEmitter3|EventEmitter3}
+	 * @see {@link https://github.com/primus/EventEmitter3|EventEmitter3}
 	 */
 	self.change = new EventEmitter();
 
