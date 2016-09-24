@@ -8,7 +8,8 @@ var nextTick = require('next-tick');
 
 
 //var Rx = require('rxjs/Rx');
-var Observable = require('rxjs/Observable').Observable;
+//var Observable = require('rxjs/Observable').Observable;
+var Subject = require('rxjs/Subject').Subject;
 require('rxjs/add/operator/groupBy');
 require('rxjs/add/operator/debounceTime');
 require('rxjs/add/operator/filter');
@@ -23,6 +24,7 @@ function Justore(initData,storeName) {
 
 	self.name = storeName || 'Anonymous Store';
 
+	/** @protected */
 	self._getErrorMsg = function (msg) {
 		return '[Store ' + self.name + '] ' + msg;
 	}
@@ -93,18 +95,28 @@ function Justore(initData,storeName) {
 
 
 
+	/** @protected */
+	this.writeSubject = new Subject();
 
-	this.writeObservable = Observable.create(function (ob) {
-		self.write = function (key, d, opt) {
-			var conf = {key:key,d:d,opt:opt||{}}
-			dataSetter(conf.key,conf.d);
-			ob.next(conf);
-			return self;
 
-		}
-	})
 
-	this.writeObservable
+
+	/**
+	 * Write data to the store, return store
+	 * @param {String} key - Store key
+	 * @param {Object} d - The value
+	 * @param {Object} [opt] - Options
+	 * @param {Boolean} [opt.mute=false] - Mute the change events
+	 * @return {Object} self - Justore instance
+	 */
+	this.write = function (key, d, opt) {
+		var conf = {key:key,d:d,opt:opt||{}}
+		dataSetter(conf.key,conf.d);
+		self.writeSubject.next(conf);
+		return self;
+	}
+
+	this.writeSubject
 		.groupBy(function(val){return val.key})
 		.subscribe(function (g) {
 			function triggerReject(reson){
@@ -142,16 +154,28 @@ function Justore(initData,storeName) {
 		})
 
 
+	/**
+	 * Manually trigger a change event
+	 * @param {String} key - Store key
+	 */
 	self.trigger = function(key){
 		triggerChange(key);
 	};
 
+	/**
+	 * Read the value from store
+	 * @param {String} key - Store key
+	 */
 	self.read = function(key){
 		return dataGetter(key);
 	};
 
 
-
+	/**
+	 * Read the cloned value from store
+	 * @param {String} key - Store key
+	 * @param {Boolean} [isDeep=false] - Use deep clone
+	 */
 	self.readAsClone = function(key,isDeep){
 		var isDeep = typeof(isDeep) === 'boolean' ? isDeep : true;
 		var ret = self.read(key);
@@ -161,6 +185,12 @@ function Justore(initData,storeName) {
 		return ret;
 	}
 
+
+	/**
+	 * Update by object schema
+	 * @param {Object|String} updeepSchema - Store key
+	 * @see @see {@link https://github.com/substantial/updeep|Updeep}
+	 */
 	self.update = function (updeepSchema) {
 
 		function safetyRead(key) {
@@ -194,6 +224,10 @@ function Justore(initData,storeName) {
 	}
 
 
+	/**
+	 * The event emitter of the store
+	 * @see @see {@link https://github.com/primus/EventEmitter3|EventEmitter3}
+	 */
 	self.change = new EventEmitter();
 
 
