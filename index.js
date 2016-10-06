@@ -125,7 +125,7 @@ function Justore(initData,storeName) {
 
 	this.writeSubject
 		.groupBy(function(val){return val.key})
-		.flatMap((g)=>{
+		.flatMap(function(g){
 			var ob = g
 				.filter(function (conf) {
 					if(conf.key === '*'){
