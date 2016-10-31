@@ -1,7 +1,7 @@
 'use strict';
 var Immutable = require('immutable');
 var EventEmitter = require('eventemitter3');
-var clone = require('lodash/lang/clone');
+var clone = require('lodash.clone');
 
 
 var nextTick = require('next-tick');
@@ -167,13 +167,16 @@ function Justore(initData,storeName) {
 	/**
 	 * Read the cloned value from store
 	 * @param {String} key - Store key
-	 * @param {Boolean} [isDeep=false] - Use deep clone
 	 */
 	self.readAsClone = function(key,isDeep){
-		var isDeep = typeof(isDeep) === 'boolean' ? isDeep : true;
+
+		if(typeof(isDeep) === 'boolean'){
+			console.warn('isDeep is deprecated')
+		}
+
 		var ret = self.read(key);
 		if(!Immutable.Iterable.isIterable(ret)){
-			ret = clone(ret,isDeep);
+			ret = clone(ret);
 		}
 		return ret;
 	}
