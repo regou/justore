@@ -2,11 +2,14 @@
   "name": "justore",
   "changelog": false,
   "release": true,
-  "version": "1.3.7",
+  "version": "1.3.8",
   "description": "We don't need flux , just the store please",
   "main": "index.js",
   "scripts": {
     "test": "mocha test.js"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
   },
   "repository": {
     "type": "git",
