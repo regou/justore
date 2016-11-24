@@ -115,6 +115,10 @@ store.change.on('*',function(changedKeys){
 - `store.report()`
 
     return the full store data as equivalent pure JavaScript Object
+    
+- `store.debugOn`
+    
+   if a key in this array, will toggle JS breakpoints when writing that key
 
 
 

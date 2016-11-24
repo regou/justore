@@ -127,6 +127,21 @@ describe('JuStore', function () {
 	});
 
 
+	it('Array is ok', function (done) {
+
+		var store = new justore({
+			val:['aa']
+		},'arr test');
+
+		store.write('val',['aa','bb']);
+		store.change.on('val',function (arr) {
+			should(arr).deepEqual(['aa','bb']);
+			done()
+		});
+
+	});
+
+
 	it('Trigger events working', function (done) {
 		var store3 = new justore({age:3},'store3');
 		store3.change.on('age',function(data){

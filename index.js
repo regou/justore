@@ -25,6 +25,11 @@ function Justore(initData,storeName) {
 
 	self.name = storeName || 'Anonymous Store';
 
+	self.debugOn = [];
+	function isIndebug(key) {
+		return self.debugOn && self.debugOn.indexOf && self.debugOn.indexOf(key) >= 0;
+	}
+
 	/** @protected */
 	self._getErrorMsg = function (msg) {
 		return '[Store ' + self.name + '] ' + msg;
@@ -77,6 +82,8 @@ function Justore(initData,storeName) {
 
 			if(forceTriggerKey === key || itemData !== prevItemData){
 
+				if(isIndebug(key)){debugger;}
+
 				emit(key,itemData,prevItemData);
 				changed.push(key);
 				//return false;
@@ -111,7 +118,10 @@ function Justore(initData,storeName) {
 	 * @return {Object} self - Justore instance
 	 */
 	this.write = function (key, d, opt) {
-		var conf = {key:key,d:d,opt:opt||{}}
+		var conf = {key:key,d:d,opt:opt||{}};
+
+		if(isIndebug(key)){debugger;}
+
 		dataSetter(conf.key,conf.d);
 		self.writeSubject.next(conf);
 		return self;
