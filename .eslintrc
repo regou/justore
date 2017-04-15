@@ -1,0 +1,10 @@
+{
+  "extends": "standard",
+  "rules": {
+    "semi":1,
+    "no-debugger":0
+  },
+  "env":{
+    "mocha": true
+  }
+}

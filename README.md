@@ -2,6 +2,7 @@
 
 [![Build Status via Travis CI](https://travis-ci.org/regou/justore.svg?branch=master)](https://travis-ci.org/regou/justore)
 [![NPM version](https://img.shields.io/npm/v/justore.svg)](https://www.npmjs.com/package/justore)
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)
 
 We don't need flux , just the store!
 

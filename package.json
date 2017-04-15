@@ -6,7 +6,7 @@
   "description": "We don't need flux , just the store please",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test.js"
+    "test": "eslint index.js;mocha test.js"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
@@ -31,7 +31,14 @@
   },
   "homepage": "https://github.com/regou/justore",
   "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-node": "^4.2.2",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^3.0.1",
     "mocha": "^2.3.0",
+    "mocha-eslint": "^3.0.1",
     "should": "^7.1.0"
   },
   "dependencies": {
