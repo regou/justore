@@ -6,7 +6,8 @@
   "description": "We don't need flux , just the store please",
   "main": "index.js",
   "scripts": {
-    "test": "eslint index.js;mocha test.js"
+    "lint": "eslint index.js",
+    "test": "npm run lint && mocha test.js"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
