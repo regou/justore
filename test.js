@@ -1,3 +1,4 @@
+'use strict';
 var should = require('should/as-function');
 var Justore = require('./index.js');
 var EventEmitter = require('eventemitter3');
@@ -5,6 +6,20 @@ var Immutable = require('immutable');
 
 function validateStore (store, d) {
   should(store.read('*').toJS()).deepEqual(d);
+}
+
+function allDone(callback,num) {
+  let pms = [];
+  let calls = []
+  for (let i=0;i<num;i++){
+    pms.push(
+      new Promise((res,rej)=>{
+        calls.push((o)=> o instanceof Error ? rej(o) : res(o) );
+      })
+    )
+  }
+  callback(...calls);
+  return Promise.all(pms)
 }
 
 describe('Justore', function () {
@@ -361,4 +376,49 @@ describe('Justore', function () {
       target: {name: 'wx', bol: true}
     });
   });
+
+
+  it('Sub immediate ok', function (done) {
+    var store = new Justore({
+      target: {name: 'aa', bol: true}
+    }, 'sub store');
+
+    store.sub('target',function (data) {
+      should(data).deepEqual({name: 'aa', bol: true});
+      done();
+    },true);
+  });
+
+  it('Sub normal ok', function () {
+    return allDone(function (a,b,c) {
+
+      var store = new Justore({
+        bb:'c',
+        target: {name: 'aa', bol: true}
+      }, 'sub store');
+
+      store.sub('target',function (data) {
+        should(data).be.exactly('q');
+        a()
+      });
+
+      store.sub('*',function (data) {
+        should(data.toJS()).deepEqual({bb:'c',target:'q'});
+        b();
+      });
+
+      store.sub('bb',function (data) {
+        c(new Error('should not emmit'));
+      });
+
+      setTimeout(()=>c(),500);
+
+      store.write('target','c');
+      store.write('target','q');
+
+    },3)
+  });
+
+
+
 });
