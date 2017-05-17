@@ -1,3 +1,4 @@
+'use strict';
 var should = require('should/as-function');
 var Justore = require('./index.js');
 var EventEmitter = require('eventemitter3');

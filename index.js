@@ -133,11 +133,11 @@ function Justore (initData, storeName) {
 
       updatePreviousData()
     })
-    .share();
+    .share()
 
   this.writing$.subscribe(function (conf) {
-      return conf
-    }, triggerReject)
+    return conf
+  }, triggerReject)
 
   /**
    * Manually trigger a change event
@@ -165,19 +165,19 @@ function Justore (initData, storeName) {
   self.sub = function (key, callback, immediate) {
     var subscription = self.writing$
       .filter(function (conf) {
-        if(key === '*'){
+        if (key === '*') {
           return true
         }
-        return conf.opt.mute ? false : conf.key === key;
-      });
+        return conf.opt.mute ? false : conf.key === key
+      })
 
-    if(immediate){
+    if (immediate) {
       subscription = subscription.startWith(key)
     }
 
     subscription = subscription
-      .map(function(){return dataGetter(key)})
-      .subscribe(callback);
+      .map(function () { return dataGetter(key) })
+      .subscribe(callback)
 
     return subscription
   }
