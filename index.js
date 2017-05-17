@@ -13,7 +13,9 @@ require('rxjs/add/operator/debounceTime')
 require('rxjs/add/operator/filter')
 require('rxjs/add/operator/do')
 require('rxjs/add/operator/map')
+require('rxjs/add/operator/share')
 require('rxjs/add/operator/mergeMap')
+require('rxjs/add/operator/startWith')
 
 var u = require('updeep')
 
@@ -92,13 +94,13 @@ function Justore (initData, storeName) {
   /**
    * Write data to the store, return store
    * @param {String} key - Store key
-   * @param {Object} d - The value
+   * @param {Object} value - The value
    * @param {Object} [opt] - Options
    * @param {Boolean} [opt.mute=false] - Mute the change events
    * @return {Object} self - Justore instance
    * */
-  this.write = function (key, d, opt) {
-    var conf = {key: key, d: d, opt: opt || {}}
+  this.write = function (key, value, opt) {
+    var conf = {key: key, d: value, opt: opt || {}}
     if (isIndebug(key)) { debugger }
     dataSetter(conf.key, conf.d)
     self.writeSubject.next(conf)
@@ -110,9 +112,9 @@ function Justore (initData, storeName) {
     console.warn('Justore write ' + self.name + ' Error: ', reson)
   }
 
-  this.writeSubject
+  this.writing$ = this.writeSubject
     .groupBy(function (val) { return val.key })
-    .flatMap(function (g) {
+    .mergeMap(function (g) {
       var ob = g
         .filter(function (conf) {
           if (conf.key === '*') {
@@ -126,10 +128,14 @@ function Justore (initData, storeName) {
 
       return ob
     })
-    .subscribe(function (conf) {
+    .do(function (conf) {
       if (!conf.opt.mute) { triggerChange(conf.key) }
 
       updatePreviousData()
+    })
+    .share();
+
+  this.writing$.subscribe(function (conf) {
       return conf
     }, triggerReject)
 
@@ -147,6 +153,33 @@ function Justore (initData, storeName) {
    */
   self.read = function (key) {
     return dataGetter(key)
+  }
+
+  /**
+   * Subscribe to the writing$
+   * @param {String} key - Store key
+   * @param {Function} callback - onNextHandler
+   * @param {Boolean} immediate - use 'startWith' operator
+   * @return {Subscription} subscription - subscription
+   */
+  self.sub = function (key, callback, immediate) {
+    var subscription = self.writing$
+      .filter(function (conf) {
+        if(key === '*'){
+          return true
+        }
+        return conf.opt.mute ? false : conf.key === key;
+      });
+
+    if(immediate){
+      subscription = subscription.startWith(key)
+    }
+
+    subscription = subscription
+      .map(function(){return dataGetter(key)})
+      .subscribe(callback);
+
+    return subscription
   }
 
   /**
@@ -168,7 +201,7 @@ function Justore (initData, storeName) {
   /**
    * Update by object schema
    * @param {Object|String} updeepSchema
-   * @param {Object|String} [val] -Update value
+   * @param {Object|String} [val] - Update value
    * @see {@link https://github.com/substantial/updeep|Updeep}
    */
   self.update = function (updeepSchema) {

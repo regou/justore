@@ -59,20 +59,20 @@ store.change.on('*',function(changedKeys){
 	```js
 	//Update by string schema
 	var store1 = new justore({
-				scoreboard:{
-					scores: {
-						team1: 0,
-						team2: 0
-					}
-				}
-			},'updatestore1');
-	store1.update('scoreboard.scores.team1',2);
-	
-	//Update by object schema
-	var store2 = new justore({
-				todos:[{text:'a',done:false},{text:'b',done:false}]
-			},'updatestore2');
-	store2.update({todos:{1:{done:true}}});
+      scoreboard: {
+        scores: {
+          team1: 0,
+          team2: 0
+        }
+      }
+    }, 'updatestore1');
+    store1.update('scoreboard.scores.team1', 2);
+    
+    //Update by object schema
+    var store2 = new justore({
+      todos: [{text: 'a', done: false}, {text: 'b', done: false}]
+    }, 'updatestore2');
+    store2.update({todos: {1: {done: true}}});
 	```
 
 
@@ -81,19 +81,39 @@ store.change.on('*',function(changedKeys){
     Write data to the store, return store
     ```js
     store.write('todos',['drink','cook'],{
-          //Boolean. If true, change the store without trigger any events
-          mute:false
+      //Boolean. If true, change the store without trigger any events
+      mute:false
     });
     ```
     Note use '*' as key can overwrite all value by passing an ImmutableJS Map
         
+- `store.sub(key,onNext[,immediate])`
+
+    Subscribe to the store, return Rx Subscription
+    ```js
+    store.sub('target',function (data) {
+  	  //do tings
+    });
+    ```
+- `store.sub(key,onNext[,immediate])`
+
+    Subscribe to the store, return Rx Subscription
+    ```js
+    store.sub('target',function (data) {
+  	  //do tings
+    });
+    ```
+
 - `store.change`
 
     The [EventEmiter](https://nodejs.org/api/events.html#events_class_events_eventemitter) of the store
+    
+    *Please use `store.sub` instead*
 
 - `store.trigger(key)`
 
-    Just trigger the events.*Normally you don't need to do this.*
+    Just trigger the events on `store.change`.
+     *Normally you don't need to do this.*
     ```js
     store.trigger('todos');
     ```
