@@ -25,19 +25,26 @@ var initData = {};
 var store = new justore(initData,'Store Name');
 
 
-//Listen change
-//Add event listeners before change
+//subscribe to change
+let subscription = store.sub('todos',function(newVal){
+  store.read('todos') === newVal //true
+});
+//Remenber to clean up
+subscription.unsubscribe();
+
+//Or Listen changes
 store.change.on('todos',function(newVal,prevVal){
   store.read('todos') === newVal //true
 });
-
-//Write or change data to store, return a Promise
-store.write('todos',['drink','cook']);
 
 //Listen all changes
 store.change.on('*',function(changedKeys){
   changedKeys.length == 1 //true
 });
+
+//Write or change data to store, return a Promise
+store.write('todos',['drink','cook']);
+
 ```
 
 
@@ -87,14 +94,6 @@ store.change.on('*',function(changedKeys){
     ```
     Note use '*' as key can overwrite all value by passing an ImmutableJS Map
         
-- `store.sub(key,onNext[,immediate])`
-
-    Subscribe to the store, return Rx Subscription
-    ```js
-    store.sub('target',function (data) {
-  	  //do tings
-    });
-    ```
 - `store.sub(key,onNext[,immediate])`
 
     Subscribe to the store, return Rx Subscription
