@@ -2,7 +2,7 @@
   "name": "justore",
   "changelog": false,
   "release": true,
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "We don't need flux , just the store please",
   "main": "index.js",
   "scripts": {

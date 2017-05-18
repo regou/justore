@@ -38,7 +38,7 @@ describe('Justore', function () {
   it('Creates an empty store', function () {
     should(store).have.property('write');
     should(store).have.property('change');
-    should(store.read()).have.property('size', 0);
+    should(store.read('*')).have.property('size', 0);
     should(store).have.property('name', 'teststore');
   });
 

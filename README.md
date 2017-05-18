@@ -25,14 +25,19 @@ var initData = {};
 var store = new justore(initData,'Store Name');
 
 
-//subscribe to change
-let subscription = store.sub('todos',function(newVal){
+//Write or change data to store, return a Promise
+store.write('todos',['drink','cook']);
+
+//Option One:
+//Subscribe to change
+let subscription = store.sub('todos',function(newVal,prevVal){
   store.read('todos') === newVal //true
 });
-//Remenber to clean up
+//Remember to clean up
 subscription.unsubscribe();
 
-//Or Listen changes
+//Option Two:
+//Listen to changes
 store.change.on('todos',function(newVal,prevVal){
   store.read('todos') === newVal //true
 });
@@ -41,9 +46,8 @@ store.change.on('todos',function(newVal,prevVal){
 store.change.on('*',function(changedKeys){
   changedKeys.length == 1 //true
 });
-
-//Write or change data to store, return a Promise
-store.write('todos',['drink','cook']);
+//Remember to clean up
+store.change.removeListener('todos',handler)
 
 ```
 
@@ -98,16 +102,16 @@ store.write('todos',['drink','cook']);
 
     Subscribe to the store, return Rx Subscription
     ```js
-    store.sub('target',function (data) {
+    store.sub('target',function (newVal, oldVal) {
   	  //do tings
     });
     ```
 
 - `store.change`
 
-    The [EventEmiter](https://nodejs.org/api/events.html#events_class_events_eventemitter) of the store
+    The [EventEmiter](https://github.com/primus/eventemitter3) of the store
     
-    *Please use `store.sub` instead*
+    *Recommend use `store.sub` instead*
 
 - `store.trigger(key)`
 

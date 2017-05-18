@@ -16,6 +16,7 @@ require('rxjs/add/operator/map')
 require('rxjs/add/operator/share')
 require('rxjs/add/operator/mergeMap')
 require('rxjs/add/operator/startWith')
+require('rxjs/add/operator/pairwise')
 
 var u = require('updeep')
 
@@ -50,11 +51,12 @@ function Justore (initData, storeName) {
     return data
   }
 
-  function dataGetter (key) {
-    if (key === undefined || key === '*') {
-      return data
+  function dataGetter (key, isPre) {
+    var source = isPre ? previousData : data
+    if (key === '*') {
+      return source
     } else {
-      return data.get(key)
+      return source.get(key)
     }
   }
 
@@ -72,7 +74,7 @@ function Justore (initData, storeName) {
   function triggerChange (forceTriggerKey) {
     var changed = []
     data.forEach(function (itemData, key) {
-      var prevItemData = previousData.get(key)
+      var prevItemData = dataGetter(key, true)
       if (forceTriggerKey === key || itemData !== prevItemData) {
         if (isIndebug(key)) { debugger }
         emit(key, itemData, prevItemData)
@@ -128,15 +130,15 @@ function Justore (initData, storeName) {
 
       return ob
     })
-    .do(function (conf) {
+    .map(function (conf) {
       if (!conf.opt.mute) { triggerChange(conf.key) }
-
-      updatePreviousData()
+      return {dataPair: [dataGetter(conf.key), dataGetter(conf.key, true)], conf: conf}
     })
     .share()
 
-  this.writing$.subscribe(function (conf) {
-    return conf
+  this.writing$.subscribe(function (info) {
+    updatePreviousData()
+    return info
   }, triggerReject)
 
   /**
@@ -164,20 +166,28 @@ function Justore (initData, storeName) {
    */
   self.sub = function (key, callback, immediate) {
     var subscription = self.writing$
-      .filter(function (conf) {
+      .filter(function (info) {
         if (key === '*') {
           return true
         }
-        return conf.opt.mute ? false : conf.key === key
+        return info.conf.opt.mute ? false : info.conf.key === key
       })
 
+    function genPair (info) {
+      return key === '*' ? [dataGetter('*'), dataGetter('*', true)] : [].concat(info.dataPair)
+    }
+
     if (immediate) {
-      subscription = subscription.startWith(key)
+      subscription = subscription.startWith({
+        dataPair: [dataGetter(key), dataGetter(key, true)]
+      })
     }
 
     subscription = subscription
-      .map(function () { return dataGetter(key) })
-      .subscribe(callback)
+      .map(genPair)
+      .subscribe(function (arg) {
+        callback.apply(self, arg)
+      }, triggerReject)
 
     return subscription
   }
