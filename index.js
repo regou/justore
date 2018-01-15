@@ -1,31 +1,25 @@
 'use strict'
-var Immutable = require('immutable')
-var EventEmitter = require('eventemitter3')
-var clone = require('lodash.clone')
+const immer = require('immer')
+const produce = immer.default
 
-var nextTick = require('next-tick')
-
-// var Rx = require('rxjs/Rx');
-// var Observable = require('rxjs/Observable').Observable;
-var Subject = require('rxjs/Subject').Subject
-require('rxjs/add/operator/groupBy')
+const Subject = require('rxjs/Subject').Subject
 require('rxjs/add/operator/debounceTime')
 require('rxjs/add/operator/filter')
 require('rxjs/add/operator/do')
 require('rxjs/add/operator/map')
 require('rxjs/add/operator/share')
-require('rxjs/add/operator/mergeMap')
-require('rxjs/add/operator/startWith')
-require('rxjs/add/operator/pairwise')
 
-var u = require('updeep')
+require('rxjs/add/operator/startWith')
+
+const _set = require('lodash.set')
+const _get = require('lodash.get')
 
 function Justore (initData, storeName) {
   var self = this
   self.name = storeName || 'Anonymous Store'
-  self.debugOn = []
+  self.debugOn = new Set()
   function isIndebug (key) {
-    return self.debugOn && self.debugOn.indexOf && self.debugOn.indexOf(key) >= 0
+    return self.debugOn.has(key)
   }
 
   /** @protected */
@@ -33,57 +27,21 @@ function Justore (initData, storeName) {
     return '[Store ' + self.name + '] ' + msg
   }
 
-  self.asyncEvents = false
-  self.bufferWrite = true
-
-  var data = Immutable.Map(initData || {})
+  var data = initData || {}
   var previousData = data
-  function dataSetter (key, val) {
-    if (key === '*') {
-      if (Immutable.Map.isMap(val)) {
-        data = val
-      } else {
-        throw new TypeError(self._getErrorMsg('* setter must be a ImmutableJS Map'))
-      }
-    } else {
-      data = data.set(key, val)
-    }
-    return data
-  }
 
-  function dataGetter (key, isPre) {
-    var source = isPre ? previousData : data
-    if (key === '*') {
-      return source
-    } else {
-      return source.get(key)
-    }
-  }
-
-  function emit () {
-    var args = arguments
-    if (self.asyncEvents) {
-      nextTick(function () {
-        self.change.emit.apply(self.change, args)
-      })
-    } else {
-      self.change.emit.apply(self.change, args)
-    }
-  }
-
-  function triggerChange (forceTriggerKey) {
-    var changed = []
-    data.forEach(function (itemData, key) {
-      var prevItemData = dataGetter(key, true)
-      if (forceTriggerKey === key || itemData !== prevItemData) {
-        if (isIndebug(key)) { debugger }
-        emit(key, itemData, prevItemData)
-        changed.push(key)
-      }
+  function dataSetter (path, payload) {
+    let newData = produce(data, function (draft) {
+      _set(draft, path, payload)
     })
-    if (changed.length) {
-      emit('*', changed)
-    }
+    updatePreviousData()
+    data = newData
+    return {newData: data, previousData: previousData}
+  }
+
+  function dataGetter (path, isPre) {
+    var source = isPre ? previousData : data
+    return _get(source, path)
   }
 
   function updatePreviousData () {
@@ -93,47 +51,40 @@ function Justore (initData, storeName) {
   /** @protected */
   this.writeSubject = new Subject()
 
+  function getMainKey (updatePath) {
+    return typeof updatePath === 'string' ? updatePath.split('.')[0] : ''
+  }
+
   /**
    * Write data to the store, return store
-   * @param {String} key - Store key
+   * @param {String} updatePath - Update path
    * @param {Object} value - The value
    * @param {Object} [opt] - Options
    * @param {Boolean} [opt.mute=false] - Mute the change events
    * @return {Object} self - Justore instance
    * */
-  this.write = function (key, value, opt) {
-    var conf = {key: key, d: value, opt: opt || {}}
-    if (isIndebug(key)) { debugger }
-    dataSetter(conf.key, conf.d)
+  this.write = function (updatePath, value, opt) {
+    let conf = {
+      key: getMainKey(updatePath),
+      path: updatePath,
+      d: value,
+      opt: opt || {}
+    }
+
+    if (isIndebug(conf.key)) { debugger }
+    let updateResult = dataSetter(conf.path, conf.d)
+    conf.newData = updateResult.newData
+    conf.previousData = updateResult.previousData
     self.writeSubject.next(conf)
     return self
   }
 
   function triggerReject (reson) {
-    emit('Error:', reson)
     console.warn('Justore write ' + self.name + ' Error: ', reson)
   }
 
   this.writing$ = this.writeSubject
-    .groupBy(function (val) { return val.key })
-    .mergeMap(function (g) {
-      var ob = g
-        .filter(function (conf) {
-          if (conf.key === '*') {
-            return true
-          }
-          var itemData = conf.d
-          var prevItemData = previousData.get(conf.key)
-          return itemData !== prevItemData
-        })
-      ob = self.bufferWrite ? ob.debounceTime(0) : ob
-
-      return ob
-    })
-    .map(function (conf) {
-      if (!conf.opt.mute) { triggerChange(conf.key) }
-      return {dataPair: [dataGetter(conf.key), dataGetter(conf.key, true)], conf: conf}
-    })
+    .debounceTime(0)
     .share()
 
   this.writing$.subscribe(function (info) {
@@ -141,137 +92,77 @@ function Justore (initData, storeName) {
     return info
   }, triggerReject)
 
-  /**
-   * Manually trigger a change event
-   * @param {String} key - Store key
-   */
-  self.trigger = function (key) {
-    triggerChange(key)
-  }
 
   /**
    * Read the value from store
    * @param {String} key - Store key
    */
   self.read = function (key) {
-    return dataGetter(key)
+    return key === '*' ? data : dataGetter(key)
   }
+
 
   /**
    * Subscribe to the writing$
-   * @param {String} key - Store key
+   * @param {String} path - Subscribe update path
    * @param {Function} callback - onNextHandler
    * @param {Boolean} immediate - use 'startWith' operator
    * @return {Subscription} subscription - subscription
    */
-  self.sub = function (key, callback, immediate) {
-    var subscription = self.writing$
+  self.sub = function (path, callback, immediate) {
+    var stream = self.writing$
       .filter(function (info) {
-        if (key === '*') {
-          return true
+        if (info.opt.mute) {
+          return false
         }
-        return info.conf.opt.mute ? false : info.conf.key === key
+        return _get(info.newData, path) !== _get(info.previousData, path)
       })
 
     function genPair (info) {
-      return key === '*' ? [dataGetter('*'), dataGetter('*', true)] : [].concat(info.dataPair)
+      return [_get(info.newData, path), _get(info.previousData, path)]
     }
 
     if (immediate) {
-      subscription = subscription.startWith({
-        dataPair: [dataGetter(key), dataGetter(key, true)]
-      })
+      stream = stream.startWith(
+        [dataGetter(path), dataGetter(path, true)]
+      )
+    } else {
+      stream = stream
+        .map(genPair)
     }
 
-    subscription = subscription
-      .map(genPair)
-      .subscribe(function (arg) {
-        callback.apply(self, arg)
-      }, triggerReject)
+    if (callback) {
+      let subscription = stream
+        .subscribe(function (arg) {
+          callback.apply(self, arg)
+        }, triggerReject)
 
-    return subscription
+      return subscription
+    } else {
+      return stream
+    }
   }
 
-  /**
-   * Read the cloned value from store
-   * @param {String} key - Store key
-   */
-  self.readAsClone = function (key, isDeep) {
-    if (typeof (isDeep) === 'boolean') {
-      console.warn('isDeep is deprecated')
-    }
-
-    var ret = self.read(key)
-    if (!Immutable.Iterable.isIterable(ret)) {
-      ret = clone(ret)
-    }
-    return ret
-  }
-
-  /**
-   * Update by object schema
-   * @param {Object|String} updeepSchema
-   * @param {Object|String} [val] - Update value
-   * @see {@link https://github.com/substantial/updeep|Updeep}
-   */
-  self.update = function (updeepSchema) {
-    function safetyRead (key) {
-      var oriData = data.get(key)
-      if (Immutable.Iterable.isIterable(oriData)) {
-        throw TypeError(self._getErrorMsg('Not support update Immutablejs Iterables, plain objects&arrays only.'))
-      } else {
-        return oriData
-      }
-    }
-
-    var val = arguments[1]
-    if (typeof updeepSchema === 'string') {
-      ;(function () {
-        var path = updeepSchema.split('.')
-        var key = path[0]
-        var newVal = u.updateIn(path.slice(1, path.length), val, safetyRead(key))
-        self.write(key, newVal)
-      })()
-    } else if (typeof updeepSchema === 'object') {
-      ;(function () {
-        var keys = Object.keys(updeepSchema)
-        keys.forEach(function (key) {
-          var newVal = u(updeepSchema[key], safetyRead(key))
-          self.write(key, newVal)
-        })
-      })()
-    }
-
-    return self
-  }
-
-  /**
-   * The event emitter of the store
-   * @see {@link https://github.com/primus/EventEmitter3|EventEmitter3}
-   */
-  self.change = new EventEmitter()
 };
 
 Justore.prototype.createReactMixin = function (key) {
   var self = this
+  let subscriptions
   return {
     componentWillMount: function () {
-      var comp = this
-      self.change.on(key, comp.onStoreChange)
+      subscriptions = self.sub(key, this.onStoreChange)
     },
     componentWillUnmount: function () {
-      var comp = this
-      self.change.removeListener(key, comp.onStoreChange)
+      if (subscriptions && subscriptions.unsubscribe) {
+        subscriptions.unsubscribe()
+      }
     }
   }
 }
 
 Justore.prototype.report = function () {
-  return this.read('*').toJS()
+  return this.read('*')
 }
 
-Justore.Immutable = Immutable
-
-Justore.u = u
 
 module.exports = Justore
