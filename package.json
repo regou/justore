@@ -2,7 +2,7 @@
   "name": "justore",
   "changelog": false,
   "release": true,
-  "version": "1.4.2",
+  "version": "2.0.0",
   "description": "We don't need flux , just the store please",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "react",
     "flux store",
     "Immutable",
-    "immutable store",
+    "immer",
     "store",
     "pubsub"
   ],
@@ -43,11 +43,10 @@
     "should": "^7.1.0"
   },
   "dependencies": {
-    "eventemitter3": "^1.1.1",
-    "immutable": "3.x",
+    "immer": "^0.7.0",
     "lodash.clone": "^4.5.0",
-    "next-tick": "^0.2.2",
-    "rxjs": "5.x",
-    "updeep": "0.14.0"
+    "lodash.get": "^4.4.2",
+    "lodash.set": "^4.3.2",
+    "rxjs": "5.x"
   }
 }

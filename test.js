@@ -1,44 +1,14 @@
 'use strict';
 var should = require('should/as-function');
 var Justore = require('./index.js');
-var EventEmitter = require('eventemitter3');
-var Immutable = require('immutable');
-
-function validateStore (store, d) {
-  should(store.read('*').toJS()).deepEqual(d);
-}
-
-function allDone(callback,num) {
-  let pms = [];
-  let calls = []
-  for (let i=0;i<num;i++){
-    pms.push(
-      new Promise((res,rej)=>{
-        calls.push((o)=> o instanceof Error ? rej(o) : res(o) );
-      })
-    )
-  }
-  callback(...calls);
-  return Promise.all(pms)
-}
+const Subject = require('rxjs/Subject').Subject
 
 describe('Justore', function () {
   var store = new Justore({}, 'teststore');
-  store.bufferWrite = false;
-
-  it('eventemitter3 working', function (done) {
-    var ee = new EventEmitter();
-
-    ee.on('hi', function () {
-      done();
-    });
-    ee.emit('hi');
-  });
 
   it('Creates an empty store', function () {
     should(store).have.property('write');
-    should(store).have.property('change');
-    should(store.read('*')).have.property('size', 0);
+    should(store).have.property('sub')
     should(store).have.property('name', 'teststore');
   });
 
@@ -64,58 +34,36 @@ describe('Justore', function () {
     should(store.read('val')).be.exactly('dd');
   });
 
-  it('Can buffer write 1', function (done) {
-    var store = new Justore({
-      name: 'wx'
-    }, 'buffered store');
-    var results = [];
-    store.change.on('name', function (val) {
-      results.push(val)
-    })
 
-    store.write('name', 'wx');
-    store.write('name', 'wx');
-    store.write('name', 'wx');
-    store.write('name', '22');
-    store.write('name', 'wx');
-    store.write('name', '22');
+  it('Bach writing', function (done) {
+    var store = new Justore({
+      val: 'aa'
+    });
+
+    let results = [];
+    store.sub('val', function (newData, prevData) {
+      results.push(newData)
+    });
 
     setTimeout(function () {
-      should(store.read('name')).be.exactly('22');
-      should(results).deepEqual(['22']);
+      should(results).deepEqual(['dd']);
       done()
-    }, 50)
+    },50)
+
+    store.write('val', 'bb')
+      .write('val', 'cc')
+      .write('val', 'dd');
+
+    should(store.read('val')).be.exactly('dd');
   });
 
-  it('Can buffer write 2', function (done) {
-    var store = new Justore({
-      name: 'wx'
-    }, 'buffered store');
-    var results = [];
-    store.change.on('name', function (val) {
-      results.push(val)
-    })
 
-    store.write('name', 'wx');
-    store.write('name', 'wx');
-    store.write('name', 'wx');
-    store.write('name', '22');
-    store.write('name', 'wx');
-    store.write('name', '22');
-    setTimeout(() => store.write('name', 'qq'), 0);
-
-    setTimeout(function () {
-      should(store.read('name')).be.exactly('qq');
-      should(results).deepEqual(['22', 'qq']);
-      done()
-    }, 50)
-  });
 
   it('Can get previous data', function (done) {
     store.write('historyTest', 'wow');
 
     setTimeout(function () {
-      store.change.on('historyTest', function (newData, prevData) {
+      store.sub('historyTest', function (newData, prevData) {
         should(prevData).be.exactly('wow');
         should(newData).be.exactly('starcraft');
         done();
@@ -130,75 +78,51 @@ describe('Justore', function () {
     }, 'arr test');
 
     store.write('val', ['aa', 'bb']);
-    store.change.on('val', function (arr) {
-      should(arr).deepEqual(['aa', 'bb']);
+    store.sub('val.1', function (val) {
+      should(val).be.exactly('bb')
       done()
     });
   });
 
-  it('Trigger events working', function (done) {
-    var store3 = new Justore({age: 3}, 'store3');
-    store3.change.on('age', function (data) {
-      var age = store3.read('age');
-      should(age).be.exactly(3);
-      should(age).be.exactly(data);
-      done();
-    });
-
-    store3.trigger('age');
-  });
-
-  it('Event "*" working', function (done) {
-    var store2 = new Justore({}, 'teststore2');
-    var activeKeys = new Set();
-    var called = false;
-    store2.change.on('*', function (keys) {
-      should(keys).be.instanceof(Array);
-      // should(keys.indexOf('Fire')>=0 || keys.indexOf('Water')>=0).be.exactly(true);
-
-      keys.forEach(function (key) {
-        var tar = store2.read(key);
-        if (key === 'Fire') {
-          should(tar).be.exactly(1);
-        } else {
-          should(tar).be.exactly(2);
+  it('Can delete root', function (done) {
+    var store = new Justore({
+      val: {
+        file:'15.5',
+        local:{
+          en:'111'
         }
-        activeKeys.add(key)
-      })
-
-      if (activeKeys.has('Fire') && activeKeys.has('Water') && !called) {
-        done();
-        called = true
       }
-    });
+    }, 'delete');
 
-    store2.write('Fire', 1);
-    store2.write('Water', 2);
-  });
-
-  it('Trigger events working with js mutable data', function (done) {
-    store.change.on('arr', function (data) {
-      var compareable = [1, 3, 5, 7, 9];
-      var arr = store.read('arr');
-      should(arr).deepEqual(compareable);
-      should(arr).be.exactly(data);
+    store.sub('val', function (val) {
+      should(val).deepEqual({
+        local:{
+          en:'111'
+        }
+      });
       done();
     });
+    store.delete('val.file');
 
-    store.write('arr', [1, 3, 5, 7, 9]);
   });
 
-  it('Can clone read', function () {
-    var d = [1, 3, 5, 7, 9];
 
-    store.write('d', d);
+  it('Can auto unsub when key deleted', function (done) {
+    var store = new Justore({
+      val: {
+        cc:'12'
+      }
+    }, 'auto unsub');
 
-    var temp = store.readAsClone('d');
-    temp.push(88);
-
-    should(temp).deepEqual([1, 3, 5, 7, 9, 88]);
-    should(d).deepEqual([1, 3, 5, 7, 9]);
+    store.sub('val.cc', function (val) {
+      done(new Error('should not trigger'))
+    });
+    store.write('val',{a:11});
+    setTimeout(function () {
+      done()
+    },200)
   });
+
 
   it('Can create mixin', function () {
     var mixin = store.createReactMixin('d');
@@ -210,161 +134,14 @@ describe('Justore', function () {
       vis: false,
       dom: null
     }, 'loopstore');
-    store.asyncEvents = true;
-    store.change.on('vis', function () {
+
+    store.sub('vis', function () {
       store.write('dom', 11);
+      should(store.read('dom')).be.exactly(11)
       done();
     });
 
     store.write('vis', true);
-  });
-
-  it('Can read all data', function () {
-    var store = new Justore({
-      vis: false,
-      dom: null
-    }, 'allteststore');
-    var allData = store.read('*');
-
-    var bol = allData.equals(Immutable.Map({
-      vis: false,
-      dom: null
-    }));
-
-    should(bol).be.exactly(true);
-  });
-
-  it('Can write all data', function (done) {
-    var store = new Justore({
-      vis: false,
-      dom: null
-    }, 'allteststore2');
-    var allData = store.read('*');
-
-    store.change.on('*', function (changedKeys) {
-      validate();
-      should(changedKeys).deepEqual(['vis']);
-      done();
-    });
-    store.write('*', allData.set('vis', true));
-
-    function validate () {
-      var bol = store.read('*').equals(Immutable.Map({
-        vis: true,
-        dom: null
-      }));
-      should(bol).be.exactly(true);
-    };
-  });
-
-  it('Can update data by string schema', function (done) {
-    var store = new Justore({
-      scoreboard: {
-        scores: {
-          team1: 0,
-          team2: 0
-        }
-      }
-    }, 'updatestore1');
-
-    store.change.on('scoreboard', function (newVal) {
-      should(newVal).be.exactly(store.read('scoreboard'));
-      should(newVal).deepEqual({
-        scores: {
-          team1: 2,
-          team2: 0
-        }
-      });
-
-      validateStore(store, {
-        scoreboard: {
-          scores: {
-            team1: 2,
-            team2: 0
-          }
-        }
-      });
-      done();
-    });
-
-    store.update('scoreboard.scores.team1', 2);
-  });
-
-  it('Can update data by object schema', function (done) {
-    var store = new Justore({
-      scoreboard: {
-        scores: {
-          team1: 0,
-          team2: [15]
-        }
-      }
-    }, 'updatestore2');
-
-    var times = 0;
-    store.change.on('*', function (keys){
-      times++;
-      if (times === 2) {
-        validateStore(store, {
-          total: 2,
-          scoreboard: {
-            scores: {
-              team1: 2,
-              team2: [15]
-            }
-          }
-        });
-        done();
-      }
-    });
-
-    store.update({
-      total: 2,
-      scoreboard: {
-        scores: {
-          team1: 2
-        }
-      }
-    });
-  });
-
-  it('Can update array by object schema', function (done) {
-    var store = new Justore({
-      todos: [{text: 'a', done: false}, {text: 'b', done: false}]
-    }, 'updatestore3');
-
-    store.change.on('*', function (keys) {
-      validateStore(store, {
-        todos: [{text: 'a', done: false}, {text: 'b', done: true}]
-      });
-      done();
-    });
-
-    store.update({todos: {1: {done: true}}});
-  });
-
-  it('Can buffer update', function (done) {
-    var store = new Justore({
-      target: {name: 'wx', bol: true}
-    }, 'update buffered store');
-    var results = [];
-    store.change.on('target', function (val) {
-      results.push(val.name);
-    })
-
-    store.update('target.name', 'wx');
-    store.update('target.name', 'wx');
-    store.update('target.name', 'wx');
-    store.update('target.name', '22');
-    store.update('target.name', 'wx');
-    store.update('target.bol', false);
-    store.update('target.name', '22');
-    setTimeout(() => store.update('target.name', 'qq'), 0);
-
-    setTimeout(function () {
-      should(store.read('target')).deepEqual({name: 'qq', bol: false});
-      should(results).deepEqual(['22', 'qq']);
-      done()
-    }, 50)
   });
 
   it('Can report', function () {
@@ -377,46 +154,21 @@ describe('Justore', function () {
     });
   });
 
-
-  it('Sub immediate ok', function (done) {
+  it('Use original stream', function (done) {
     var store = new Justore({
-      target: {name: 'aa', bol: true}
-    }, 'sub store');
+      val: {
+        cc:'12'
+      }
+    });
 
-    store.sub('target',function (data) {
-      should(data).deepEqual({name: 'aa', bol: true});
-      done();
-    },true);
-  });
+    store.write('val',{cc:14});
 
-  it('Sub normal ok', function () {
-    return allDone(function (a,b,c) {
-
-      var store = new Justore({
-        bb:'c',
-        target: {name: 'aa', bol: true}
-      }, 'sub store');
-
-      store.sub('target',function (data) {
-        should(data).be.exactly('q');
-        a()
-      });
-
-      store.sub('*',function (data) {
-        should(data.toJS()).deepEqual({bb:'c',target:'q'});
-        b();
-      });
-
-      store.sub('bb',function (data) {
-        c(new Error('should not emmit'));
-      });
-
-      setTimeout(()=>c(),500);
-
-      store.write('target','c');
-      store.write('target','q');
-
-    },3)
+    let stream = store.sub('val.cc');
+    stream.subscribe(function (valuePair) {
+        should(valuePair[0]).be.exactly(14);
+        should(stream).be.instanceof(Subject)
+        done()
+      })
   });
 
 
