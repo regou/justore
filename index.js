@@ -6,6 +6,7 @@ const Subject = require('rxjs/Subject').Subject
 require('rxjs/add/operator/debounceTime')
 require('rxjs/add/operator/filter')
 require('rxjs/add/operator/do')
+require('rxjs/add/operator/takeWhile')
 require('rxjs/add/operator/map')
 require('rxjs/add/operator/share')
 
@@ -14,13 +15,19 @@ require('rxjs/add/operator/startWith')
 const _set = require('lodash.set')
 const _get = require('lodash.get')
 
+const utils = require('./utils')
+const getMainKey = utils.getMainKey
+const splitLastKey = utils.splitLastKey
+
 function Justore (initData, storeName) {
-  var self = this
+  let self = this
   self.name = storeName || 'Anonymous Store'
-  self.debugOn = new Set()
+  self.debugOn = []
   function isIndebug (key) {
-    return self.debugOn.has(key)
+    return self.debugOn && self.debugOn.indexOf && self.debugOn.indexOf(key) >= 0
   }
+
+  self.onError = function () {}
 
   /** @protected */
   self._getErrorMsg = function (msg) {
@@ -39,6 +46,20 @@ function Justore (initData, storeName) {
     return {newData: data, previousData: previousData}
   }
 
+  function dataDeleter (path) {
+    let newData = produce(data, function (draft) {
+      let pathPair = splitLastKey(path)
+      if (pathPair[1]) {
+        delete _get(draft, pathPair[1])[pathPair[0]]
+      } else {
+        delete draft[pathPair[0]]
+      }
+    })
+    updatePreviousData()
+    data = newData
+    return {newData: data, previousData: previousData}
+  }
+
   function dataGetter (path, isPre) {
     var source = isPre ? previousData : data
     return _get(source, path)
@@ -50,10 +71,6 @@ function Justore (initData, storeName) {
 
   /** @protected */
   this.writeSubject = new Subject()
-
-  function getMainKey (updatePath) {
-    return typeof updatePath === 'string' ? updatePath.split('.')[0] : ''
-  }
 
   /**
    * Write data to the store, return store
@@ -79,7 +96,22 @@ function Justore (initData, storeName) {
     return self
   }
 
-  function triggerReject (reson) {
+  this.delete = function (updatePath, opt) {
+    let conf = {
+      key: getMainKey(updatePath),
+      path: updatePath,
+      opt: opt || {}
+    }
+    if (isIndebug(conf.key)) { debugger }
+    let updateResult = dataDeleter(conf.path)
+    conf.newData = updateResult.newData
+    conf.previousData = updateResult.previousData
+    self.writeSubject.next(conf)
+    return self
+  }
+
+  function onReject (reson) {
+    self.onError(reson)
     console.warn('Justore write ' + self.name + ' Error: ', reson)
   }
 
@@ -90,8 +122,7 @@ function Justore (initData, storeName) {
   this.writing$.subscribe(function (info) {
     updatePreviousData()
     return info
-  }, triggerReject)
-
+  }, onReject)
 
   /**
    * Read the value from store
@@ -101,16 +132,28 @@ function Justore (initData, storeName) {
     return key === '*' ? data : dataGetter(key)
   }
 
-
   /**
    * Subscribe to the writing$
    * @param {String} path - Subscribe update path
-   * @param {Function} callback - onNextHandler
-   * @param {Boolean} immediate - use 'startWith' operator
+   * @param {Function} [onchange] - onNextHandler
+   * @param {Boolean} [immediate] - use 'startWith' operator
    * @return {Subscription} subscription - subscription
    */
-  self.sub = function (path, callback, immediate) {
+  self.sub = function (path, onchange, immediate) {
     var stream = self.writing$
+      .takeWhile(function (info) {
+        let keyPairs = splitLastKey(path)
+        const inData = function (d, pairs) { return pairs[1] ? pairs[0] in (_get(d, pairs[1]) || {}) : pairs[0] in d }
+
+        // Must from have -> don't have
+        if (inData(info.newData, keyPairs)) {
+          return true
+        } else if (inData(info.previousData, keyPairs)) {
+          return false
+        } else {
+          return true
+        }
+      })
       .filter(function (info) {
         if (info.opt.mute) {
           return false
@@ -131,18 +174,17 @@ function Justore (initData, storeName) {
         .map(genPair)
     }
 
-    if (callback) {
+    if (onchange) {
       let subscription = stream
         .subscribe(function (arg) {
-          callback.apply(self, arg)
-        }, triggerReject)
+          onchange.apply(self, arg)
+        }, onReject)
 
       return subscription
     } else {
       return stream
     }
   }
-
 };
 
 Justore.prototype.createReactMixin = function (key) {
@@ -163,6 +205,5 @@ Justore.prototype.createReactMixin = function (key) {
 Justore.prototype.report = function () {
   return this.read('*')
 }
-
 
 module.exports = Justore
