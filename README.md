@@ -35,10 +35,6 @@ subscription.unsubscribe();
 
 ### Advanced usage
 
-- `store.read('*')`
-
-	Read all value
-
 - `store.write(keyPath, data [,options])`
 
     Write data to the store, return store
