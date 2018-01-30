@@ -9,6 +9,8 @@ require('rxjs/add/operator/do')
 require('rxjs/add/operator/takeWhile')
 require('rxjs/add/operator/map')
 require('rxjs/add/operator/share')
+require('rxjs/add/operator/mergeMap')
+require('rxjs/add/operator/groupBy')
 
 require('rxjs/add/operator/startWith')
 
@@ -23,6 +25,9 @@ function Justore (initData, storeName) {
   let self = this
   self.name = storeName || 'Anonymous Store'
   self.debugOn = []
+
+  self.bufferWrite = true
+
   function isIndebug (key) {
     return self.debugOn && self.debugOn.indexOf && self.debugOn.indexOf(key) >= 0
   }
@@ -116,7 +121,11 @@ function Justore (initData, storeName) {
   }
 
   this.writing$ = this.writeSubject
-    .debounceTime(0)
+    .groupBy(function (conf) { return conf.path })
+    .mergeMap(function (g) {
+      var ob = self.bufferWrite ? g.debounceTime(0) : g
+      return ob
+    })
     .share()
 
   this.writing$.subscribe(function (info) {

@@ -58,6 +58,40 @@ describe('Justore', function () {
   });
 
 
+  it('Multi writing', function (done) {
+    var store = new Justore({
+      ww: 'aa',
+      val2:'',
+      val4:{a:11}
+    });
+
+    let results = [];
+    store.sub('ww', function (newData, prevData) {
+      results.push(newData)
+    });
+
+    store.sub('val2', function (newData, prevData) {
+      results.push(newData)
+    });
+
+    store.sub('val4', function (newData, prevData) {
+      results.push(newData)
+    });
+
+    setTimeout(function () {
+      should(results).deepEqual(['cc',{a:12},'re']);
+      done()
+    },50)
+
+    store.write('ww', 'bb')
+      .write('ww', 'cc')
+      .write('val2', 'dd')
+      .write('val4.a', 12)
+      .write('val2', 're');
+
+  });
+
+
 
   it('Can get previous data', function (done) {
     store.write('historyTest', 'wow');
