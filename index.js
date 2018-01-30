@@ -175,9 +175,11 @@ function Justore (initData, storeName) {
     }
 
     if (immediate) {
-      stream = stream.startWith(
-        [dataGetter(path), dataGetter(path, true)]
-      )
+      stream = stream
+        .map(genPair)
+        .startWith(
+          [dataGetter(path), dataGetter(path, true)]
+        )
     } else {
       stream = stream
         .map(genPair)
