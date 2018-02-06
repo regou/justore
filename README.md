@@ -86,8 +86,8 @@ subscription.unsubscribe();
 
 ### Auto unsubscibe
 
-if the subscribed data has been deleted (not set to undefined), the subscription will unsubscribe automatically
+    If the subscribed data has been deleted (not set to undefined), the subscription will unsubscribe automatically
 
 ### Browser support
 
-IE11 or higher
+    IE11 or higher
