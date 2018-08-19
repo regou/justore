@@ -205,6 +205,56 @@ describe('Justore', function () {
       })
   });
 
+  it('Apply raw immer manipulating', function () {
+    let store = new Justore({
+      vtext: {
+        i:'12'
+      },
+      enable:false
+    });
+    store.batchWrite(['vtext'], draft => {
+      draft.vtext.i = 10
+      draft.enable = true
+    });
+    should(store.read('vtext.i')).be.exactly(10);
+    should(store.read('enable')).be.exactly(true);
+  });
+
+  it('batchWrite can emmit', function (done) {
+    let store = new Justore({
+      vtext: {
+        i:'12'
+      },
+      enable: false
+    });
+    store.batchWrite(['enable'], draft => {
+      draft.enable = true
+    });
+    let stream = store.sub('enable');
+    stream.subscribe(function (valuePair) {
+      should(valuePair[0]).be.exactly(true);
+      should(stream).be.instanceof(Subject)
+      done()
+    })
+  });
+
+  it('batchWrite can deep emmit', function (done) {
+    let store = new Justore({
+      vtext: {
+        i:'12'
+      },
+      enable: false
+    });
+    store.batchWrite(['vtext'], draft => {
+      draft.vtext.i = 50
+    });
+    let stream = store.sub('vtext.i');
+    stream.subscribe(function (valuePair) {
+      should(valuePair[0]).be.exactly(50);
+      should(stream).be.instanceof(Subject)
+      done()
+    })
+  });
 
 
 });

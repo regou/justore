@@ -2,7 +2,7 @@
   "name": "justore",
   "changelog": false,
   "release": true,
-  "version": "2.0.4",
+  "version": "3.0.0",
   "description": "We don't need flux , just the store please",
   "main": "index.js",
   "scripts": {
@@ -43,8 +43,7 @@
     "should": "^7.1.0"
   },
   "dependencies": {
-    "immer": "^1.0.1",
-    "lodash.clone": "^4.5.0",
+    "immer": "1.5.x",
     "lodash.get": "^4.4.2",
     "lodash.set": "^4.3.2",
     "rxjs": "5.x"

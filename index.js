@@ -50,6 +50,12 @@ function Justore (initData, storeName) {
     data = newData
     return {newData: data, previousData: previousData}
   }
+  function batchSetter (manipulateFunction) {
+    let newData = produce(data, manipulateFunction)
+    updatePreviousData()
+    data = newData
+    return {newData: data, previousData: previousData}
+  }
 
   function dataDeleter (path) {
     let newData = produce(data, function (draft) {
@@ -113,6 +119,25 @@ function Justore (initData, storeName) {
     conf.previousData = updateResult.previousData
     self.writeSubject.next(conf)
     return self
+  }
+
+  this.batchWrite = function (updatePaths, manipulateFunction, opt) {
+    let updateResult = batchSetter(manipulateFunction)
+    let paths = (updatePaths || [])
+    if (!Array.isArray(paths)) {
+      throw TypeError('updatePaths should be an Array of update paths')
+    }
+    paths.forEach(function (updatePath) {
+      let conf = {
+        key: getMainKey(updatePath),
+        path: updatePath,
+        d: _get(updateResult.newData, updatePath),
+        opt: opt || {}
+      }
+      conf.newData = updateResult.newData
+      conf.previousData = updateResult.previousData
+      self.writeSubject.next(conf)
+    })
   }
 
   function onReject (reson) {
