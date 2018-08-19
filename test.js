@@ -212,11 +212,11 @@ describe('Justore', function () {
       },
       enable:false
     });
-    store.batchWrite(['vtext'], draft => {
+    let ret = store.batchWrite(['vtext'], draft => {
       draft.vtext.i = 10
       draft.enable = true
     });
-    should(store).be.instanceof(Justore)
+    should(ret).be.instanceof(Justore)
     should(store.read('vtext.i')).be.exactly(10);
     should(store.read('enable')).be.exactly(true);
   });

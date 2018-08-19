@@ -137,8 +137,8 @@ function Justore (initData, storeName) {
       conf.newData = updateResult.newData
       conf.previousData = updateResult.previousData
       self.writeSubject.next(conf)
-      return self
     })
+    return self
   }
 
   function onReject (reson) {
