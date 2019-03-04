@@ -36,7 +36,7 @@ subscription.unsubscribe();
 ### Advanced usage
 
 - `store.batchWrite([keyPaths], manipulateFunction);`
-    Batch write multiple data to the store, only emit event if listed on the 1st param
+    Batch write multiple data to the store, only emit if it's listed on the keyPaths
 ```js
     store.batchWrite(['vtext', 'enable'], draft => {
       draft.vtext.i = 10
@@ -55,9 +55,9 @@ subscription.unsubscribe();
     });
 ```
         
-- `store.sub(keyPath,onNext[,immediate])`
+- `store.sub(keyPath[,onNext][,immediate])`
 
-    Subscribe to the store, return Rx Subscription
+    Subscribe to the store, if onNext is defined, return an Rx Subscription, else return an Rx stream
 ```js
     store.sub('todos.1',function (newVal, oldVal) {
   	  //do tings
