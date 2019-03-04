@@ -35,6 +35,16 @@ subscription.unsubscribe();
 
 ### Advanced usage
 
+- `store.batchWrite([keyPaths], manipulateFunction);`
+    Batch write multiple data to the store, only emit event if listed on the 1st param
+```js
+    store.batchWrite(['vtext', 'enable'], draft => {
+      draft.vtext.i = 10
+      draft.enable = true
+      draft.pos = 12 // works, but no event emit
+    });
+```
+
 - `store.write(keyPath, data [,options])`
 
     Write data to the store, return store
