@@ -1,7 +1,8 @@
 'use strict';
 var should = require('should/as-function');
 var Justore = require('./index.js');
-const Subject = require('rxjs/Subject').Subject
+
+const { Subject } = require('rxjs');
 
 describe('Justore', function () {
   var store = new Justore({}, 'teststore');
