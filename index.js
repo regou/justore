@@ -2,9 +2,15 @@
 const immer = require('immer')
 const produce = immer.default
 
-const { Subject } = require('rxjs')
-
-const {debounceTime, filter, takeWhile, map, share, mergeMap, groupBy, startWith} = require('rxjs/operators')
+const Subject = require('rxjs/Subject').Subject
+const debounceTime = require('rxjs/operators/debounceTime').debounceTime
+const filter = require('rxjs/operators/filter').filter
+const takeWhile = require('rxjs/operators/takeWhile').takeWhile
+const map = require('rxjs/operators/map').map
+const share = require('rxjs/operators/share').share
+const mergeMap = require('rxjs/operators/mergeMap').mergeMap
+const groupBy = require('rxjs/operators/groupBy').groupBy
+const startWith = require('rxjs/operators/startWith').startWith
 
 const _set = require('lodash.set')
 const _get = require('lodash.get')
