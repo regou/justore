@@ -3,16 +3,14 @@ const immer = require('immer')
 const produce = immer.default
 
 const Subject = require('rxjs/Subject').Subject
-require('rxjs/add/operator/debounceTime')
-require('rxjs/add/operator/filter')
-require('rxjs/add/operator/do')
-require('rxjs/add/operator/takeWhile')
-require('rxjs/add/operator/map')
-require('rxjs/add/operator/share')
-require('rxjs/add/operator/mergeMap')
-require('rxjs/add/operator/groupBy')
-
-require('rxjs/add/operator/startWith')
+const debounceTime = require('rxjs/operators/debounceTime').debounceTime
+const filter = require('rxjs/operators/filter').filter
+const takeWhile = require('rxjs/operators/takeWhile').takeWhile
+const map = require('rxjs/operators/map').map
+const share = require('rxjs/operators/share').share
+const mergeMap = require('rxjs/operators/mergeMap').mergeMap
+const groupBy = require('rxjs/operators/groupBy').groupBy
+const startWith = require('rxjs/operators/startWith').startWith
 
 const _set = require('lodash.set')
 const _get = require('lodash.get')
@@ -147,12 +145,14 @@ function Justore (initData, storeName) {
   }
 
   this.writing$ = this.writeSubject
-    .groupBy(function (conf) { return conf.path })
-    .mergeMap(function (g) {
-      var ob = self.bufferWrite ? g.debounceTime(0) : g
-      return ob
-    })
-    .share()
+    .pipe(
+      groupBy(function (conf) { return conf.path }),
+      mergeMap(function (g) {
+        var ob = self.bufferWrite ? g.pipe(debounceTime(0)) : g
+        return ob
+      }),
+      share()
+    )
 
   this.writing$.subscribe(function (info) {
     updatePreviousData()
@@ -176,25 +176,27 @@ function Justore (initData, storeName) {
    */
   self.sub = function (path, onchange, immediate) {
     var stream = self.writing$
-      .takeWhile(function (info) {
-        let keyPairs = splitLastKey(path)
-        const inData = function (d, pairs) { return pairs[1] ? pairs[0] in (_get(d, pairs[1]) || {}) : pairs[0] in d }
+      .pipe(
+        takeWhile(function (info) {
+          let keyPairs = splitLastKey(path)
+          const inData = function (d, pairs) { return pairs[1] ? pairs[0] in (_get(d, pairs[1]) || {}) : pairs[0] in d }
 
-        // Must from have -> don't have
-        if (inData(info.newData, keyPairs)) {
-          return true
-        } else if (inData(info.previousData, keyPairs)) {
-          return false
-        } else {
-          return true
-        }
-      })
-      .filter(function (info) {
-        if (info.opt.mute) {
-          return false
-        }
-        return _get(info.newData, path) !== _get(info.previousData, path)
-      })
+          // Must from have -> don't have
+          if (inData(info.newData, keyPairs)) {
+            return true
+          } else if (inData(info.previousData, keyPairs)) {
+            return false
+          } else {
+            return true
+          }
+        }),
+        filter(function (info) {
+          if (info.opt.mute) {
+            return false
+          }
+          return _get(info.newData, path) !== _get(info.previousData, path)
+        })
+      )
 
     function genPair (info) {
       return [_get(info.newData, path), _get(info.previousData, path)]
@@ -202,13 +204,15 @@ function Justore (initData, storeName) {
 
     if (immediate) {
       stream = stream
-        .map(genPair)
-        .startWith(
-          [dataGetter(path), dataGetter(path, true)]
+        .pipe(
+          map(genPair),
+          startWith(
+            [dataGetter(path), dataGetter(path, true)]
+          )
         )
     } else {
       stream = stream
-        .map(genPair)
+        .pipe(map(genPair))
     }
 
     if (onchange) {
