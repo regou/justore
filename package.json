@@ -2,11 +2,15 @@
   "name": "justore",
   "changelog": false,
   "release": true,
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "We don't need flux , just the store please",
-  "main": "index.js",
+  "main": "dist/justore.js",
+  "module": "dist/justore.esm.js",
   "scripts": {
-    "lint": "eslint index.js",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "lint": "eslint src/index.js",
+    "pretest": "npm run build",
     "test": "npm run lint && mocha test.js"
   },
   "publishConfig": {
@@ -25,7 +29,7 @@
     "store",
     "pubsub"
   ],
-  "author": "admin@regou.me",
+  "author": "regou",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/regou/justore/issues"
@@ -40,8 +44,10 @@
     "eslint-plugin-standard": "^3.0.1",
     "mocha": "^2.3.0",
     "mocha-eslint": "^3.0.1",
-    "should": "^7.1.0",
-    "rxjs-compat": "6.x"
+    "rollup": "^1.16.2",
+    "rollup-plugin-buble": "^0.19.6",
+    "rxjs-compat": "6.x",
+    "should": "^7.1.0"
   },
   "dependencies": {
     "immer": "2.1.*",

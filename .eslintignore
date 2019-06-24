@@ -1,2 +1,5 @@
 test.js
 debug.js
+rollup.config.js
+dist/
+node_modules/

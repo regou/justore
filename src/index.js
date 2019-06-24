@@ -1,26 +1,21 @@
-'use strict'
-const immer = require('immer')
-const produce = immer.default
+import produce from 'immer'
+import { Subject } from 'rxjs'
+import {
+  debounceTime, filter,
+  takeWhile,
+  map,
+  share,
+  mergeMap,
+  groupBy,
+  startWith
+} from 'rxjs/operators'
 
-const Subject = require('rxjs/Subject').Subject
-const debounceTime = require('rxjs/operators/debounceTime').debounceTime
-const filter = require('rxjs/operators/filter').filter
-const takeWhile = require('rxjs/operators/takeWhile').takeWhile
-const map = require('rxjs/operators/map').map
-const share = require('rxjs/operators/share').share
-const mergeMap = require('rxjs/operators/mergeMap').mergeMap
-const groupBy = require('rxjs/operators/groupBy').groupBy
-const startWith = require('rxjs/operators/startWith').startWith
-
-const _set = require('lodash.set')
-const _get = require('lodash.get')
-
-const utils = require('./utils')
-const getMainKey = utils.getMainKey
-const splitLastKey = utils.splitLastKey
+import { default as _set } from 'lodash.set'
+import { default as _get } from 'lodash.get'
+import { getMainKey, splitLastKey } from './utils'
 
 function Justore (initData, storeName) {
-  let self = this
+  const self = this
   self.name = storeName || 'Anonymous Store'
   self.debugOn = []
 
@@ -70,7 +65,7 @@ function Justore (initData, storeName) {
   }
 
   function dataGetter (path, isPre) {
-    var source = isPre ? previousData : data
+    const source = isPre ? previousData : data
     return _get(source, path)
   }
 
@@ -229,7 +224,7 @@ function Justore (initData, storeName) {
 };
 
 Justore.prototype.createReactMixin = function (key) {
-  var self = this
+  const self = this
   let subscriptions
   return {
     componentWillMount: function () {
@@ -247,4 +242,4 @@ Justore.prototype.report = function () {
   return this.read('*')
 }
 
-module.exports = Justore
+export default Justore

@@ -2,7 +2,7 @@
   "extends": "standard",
    "parserOptions": {
     "ecmaVersion": 6,
-    "sourceType": "script"
+    "sourceType": "module"
   },
   "rules": {
     "semi":1,
@@ -10,7 +10,7 @@
     "no-multiple-empty-lines":"warn"
   },
   "env":{
-    "es6": false,
+    "es6": true,
     "mocha": true,
     "node": true,
     "browser": true

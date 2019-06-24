@@ -1,6 +1,5 @@
-'use strict'
 
-function getMainKey (updatePath) {
+export function getMainKey (updatePath) {
   return typeof updatePath === 'string' ? updatePath.split('.')[0] : ''
 }
 
@@ -9,7 +8,7 @@ function getMainKey (updatePath) {
  * @param {String} path - update path
  * @return {Array} pathPair - Array of [key,parentPath]
  */
-function splitLastKey (path) {
+export function splitLastKey (path) {
   let pathArr = path.split('.')
   if (pathArr.length >= 2) {
     let patentObjectPath = pathArr.splice(0, pathArr.length - 1) || []// pathArr -> key
@@ -17,9 +16,4 @@ function splitLastKey (path) {
   } else {
     return [pathArr]
   }
-}
-
-module.exports = {
-  getMainKey: getMainKey,
-  splitLastKey: splitLastKey
 }
